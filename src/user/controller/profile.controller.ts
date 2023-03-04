@@ -30,7 +30,7 @@ export class ProfileController {
   }
 
   @Put('/v1/profile')
-  @UseGuards(AuthGuard(), UserInactiveGuard)
+  @UseGuards(AuthGuard())
   @ApiBearerAuth()
   @ApiUnauthorizedResponse()
   @ApiForbiddenResponse()

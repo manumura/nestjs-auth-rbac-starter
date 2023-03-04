@@ -25,14 +25,13 @@ export class UserRepository {
     return isValid;
   }
 
-  async create(createUserDto: CreateUserDto, password: string, roleId: number): Promise<UserWithRole> {
-    const { email, name, role } = createUserDto;
+  async create(email: string, name: string, password: string, roleId: number): Promise<UserWithRole> {
     const hashedPassword = await this.generateHashedPassword(password);
     const userEntityToCreate: Prisma.UserCreateInput = {
       password: hashedPassword,
       email,
       name: name ? name : '',
-      isActive: role === RoleEnum.ADMIN ? true : false,
+      isActive: true,
       role: {
         connect: {
           id: roleId,
@@ -82,7 +81,7 @@ export class UserRepository {
       password: hashedPassword,
       email,
       name: name ? name : '',
-      isActive: role === RoleEnum.ADMIN ? true : false,
+      isActive: true,
       roleId: roleEntity.id,
       createdAt: moment().utc().toDate(),
     };

@@ -38,12 +38,10 @@ export class AuthenticationService {
       active: true,
     };
     const userEntity = await this.userRepository.findOne(filter);
-    console.log('userEntity, ', userEntity);
     if (!userEntity) {
       throw new UnauthorizedException('Invalid email or password');
     }
     const valid = await this.userRepository.isPasswordValid(password, userEntity.password);
-    console.log('valid ', valid);
     if (!valid) {
       throw new UnauthorizedException('Invalid email or password');
     }

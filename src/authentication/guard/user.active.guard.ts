@@ -1,5 +1,4 @@
 import { CanActivate, ExecutionContext, Injectable, Logger, ForbiddenException } from '@nestjs/common';
-
 import { UserModel } from '../../user/model/user.model';
 
 @Injectable()

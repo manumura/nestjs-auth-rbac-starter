@@ -1,5 +1,4 @@
 import { Body, Controller, HttpCode, Logger, Post, UseGuards, ValidationPipe } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -9,17 +8,12 @@ import {
   ApiUnauthorizedResponse
 } from '@nestjs/swagger';
 import { GetUser } from '../../shared/decorator/get-user.decorator';
-import { Roles } from '../../shared/decorator/roles.decorator';
-import { MessageModel } from '../../shared/model/message.model';
-import { CreateUserDto } from '../../user/dto/create.user.dto';
-import { GenerateUserPasswordDto } from '../../user/dto/generate.user.password';
-import { Role } from '../../user/model/role.model';
+import { RegisterDto } from '../../user/dto/register.dto';
 import { UserModel } from '../../user/model/user.model';
 import { UserService } from '../../user/service/user.service';
 import { LoginDto } from '../dto/login.dto';
 import { LogoutGuard } from '../guard/logout.guard';
 import { RefreshTokenGuard } from '../guard/refresh.token.guard';
-import { RolesGuard } from '../guard/roles.guard';
 import { UserActiveGuard } from '../guard/user.active.guard';
 import { LoginModel } from '../model/login.model';
 import { AuthenticationService } from '../service/authentication.service';
@@ -34,18 +28,13 @@ export class AuthenticationController {
   ) {}
 
   @Post('/v1/register')
-  @Roles(Role.ADMIN)
-  @UseGuards(AuthGuard(), UserActiveGuard, RolesGuard)
-  @ApiBearerAuth()
-  @ApiUnauthorizedResponse()
-  @ApiForbiddenResponse()
   @ApiCreatedResponse({
     description: 'The record has been successfully created.',
     type: UserModel,
   })
   @ApiBadRequestResponse({ description: 'Validation failed' })
-  register(@Body(ValidationPipe) userData: CreateUserDto): Promise<UserModel> {
-    return this.userService.register(userData);
+  register(@Body(ValidationPipe) registerDto: RegisterDto): Promise<UserModel> {
+    return this.userService.register(registerDto);
   }
 
   @Post('/v1/login')

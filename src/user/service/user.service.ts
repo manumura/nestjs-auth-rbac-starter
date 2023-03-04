@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
 import { validate, ValidationError } from 'class-validator';
@@ -10,6 +10,7 @@ import { CreateUserDto } from '../dto/create.user.dto';
 import { FilterUserDto } from '../dto/filter.user.dto';
 import { FilterUsersDto } from '../dto/filter.users.dto';
 import { GetUsersDto } from '../dto/get.users.dto';
+import { RegisterDto } from '../dto/register.dto';
 import { UpdateEmailDto } from '../dto/update.email.dto';
 import { UpdateProfileDto } from '../dto/update.profile.dto';
 import { UpdateUserDto } from '../dto/update.user.dto';
@@ -106,16 +107,26 @@ export class UserService {
     return user;
   }
 
-  async register(createUserDto: CreateUserDto): Promise<UserModel> {
-    const { email, role } = createUserDto;
+  async register(registerDto: RegisterDto): Promise<UserModel> {
+    const { email, password, name } = registerDto;
+    if (!email || !password) {
+      throw new BadRequestException('Email or password undefined');
+    }
+
+    const user = await this.create(email, name, RoleEnum.USER, password);
+    return user;
+  }
+
+  async createUser(createUserDto: CreateUserDto): Promise<UserModel> {
+    const { email, name, role } = createUserDto;
     if (!email || !role) {
       throw new BadRequestException('Email or role undefined');
     }
 
-    const generatedPassword = role === RoleEnum.ADMIN ? this.generateRandomString(8) : uuidv4();
+    const generatedPassword = uuidv4();
     this.logger.debug(`generatedPassword: ${generatedPassword}`);
 
-    const user = await this.create(createUserDto, generatedPassword);
+    const user = await this.create(email, name, role, generatedPassword);
 
     // Send email with password
     this.logger.verbose(`[EMAIL][REGISTER] Sending email to: ${email}`);
@@ -129,8 +140,7 @@ export class UserService {
     return user;
   }
 
-  private async create(createUserDto: CreateUserDto, password: string): Promise<UserModel> {
-    const { email, name, role } = createUserDto;
+  private async create(email: string, name: string, role: RoleEnum, password: string): Promise<UserModel> {
     const roleEntity = await this.roleRepository.findByName(role);
     if (!roleEntity) {
       throw new NotFoundException(`Role not found by name: ${role}`);
@@ -140,24 +150,93 @@ export class UserService {
       email,
     };
     const userEntityFound = await this.userRepository.findOne(filterByEmail);
-    this.logger.debug(`User already existing: ${JSON.stringify(userEntityFound)}`);
+    this.logger.debug(`User email already exists: ${JSON.stringify(userEntityFound)}`);
 
-    let userEntityCreated;
     if (userEntityFound) {
-      // Update to not deleted if user deleted
-      const updateUserDto: UpdateUserDto = {
-        password,
-        name: name ? name : '',
-        isActive: role === RoleEnum.ADMIN ? true : false,
-        roleId: roleEntity.id,
-      };
-      userEntityCreated = await this.userRepository.updateById(userEntityFound.id, updateUserDto);
-    } else {
-      userEntityCreated = await this.userRepository.create(createUserDto, password, roleEntity.id);
+      throw new ConflictException('Cannot create user');
     }
 
+    const userEntityCreated = await this.userRepository.create(email, name, password, roleEntity.id);
     const user = this.userMapper.entityToModel(userEntityCreated);
     this.logger.debug(`User created: ${JSON.stringify(user)}`);
+    return user;
+  }
+
+  async updateProfileById(userId: number, updateProfileDto: UpdateProfileDto): Promise<UserModel> {
+    this.logger.debug('Update profile by ID');
+    const { name, password } = updateProfileDto;
+    if (!userId || !name || !password) {
+      throw new BadRequestException('User ID, password or first name undefined');
+    }
+
+    this.logger.debug(`Find user by ID: ${userId}`);
+    const filterById: FilterUserDto = {
+      id: userId,
+    };
+    const userEntity = await this.userRepository.findOne(filterById);
+    this.logger.debug(`User found: ${JSON.stringify(userEntity)}`);
+    if (!userEntity) {
+      throw new NotFoundException(`User not found with ID: ${userId}`);
+    }
+
+    const updateUserDto: UpdateUserDto = {
+      password,
+      name,
+    };
+
+    const updatedUserEntity = await this.userRepository.updateById(userId, updateUserDto);
+    const user = this.userMapper.entityToModel(updatedUserEntity);
+    this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
+
+    return user;
+  }
+
+  async updateEmailById(userId: number, updateEmailDto: UpdateEmailDto): Promise<UserModel> {
+    this.logger.debug('Update user by ID');
+    const { email } = updateEmailDto;
+    if (!userId || !email) {
+      throw new BadRequestException('User ID, email or first name undefined');
+    }
+
+    this.logger.debug(`Find user by ID: ${userId}`);
+    const filterById: FilterUserDto = {
+      id: userId,
+    };
+    const userEntity = await this.userRepository.findOne(filterById);
+    this.logger.debug(`User found: ${JSON.stringify(userEntity)}`);
+    if (!userEntity) {
+      throw new NotFoundException(`User not found with ID: ${userId}`);
+    }
+
+    const updateUserDto: UpdateUserDto = {
+      email,
+    };
+
+    const updatedUserEntity = await this.userRepository.updateById(userId, updateUserDto);
+    const user = this.userMapper.entityToModel(updatedUserEntity);
+    this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
+    return user;
+  }
+
+  async deleteById(userId: number): Promise<UserModel> {
+    this.logger.debug('Delete user by ID');
+    if (!userId) {
+      throw new BadRequestException('User ID undefined');
+    }
+
+    this.logger.debug(`Find user by ID: ${userId}`);
+    const filterById: FilterUserDto = {
+      id: userId,
+    };
+    const userEntity = await this.userRepository.findOne(filterById);
+    this.logger.debug(`User found: ${JSON.stringify(userEntity)}`);
+    if (!userEntity) {
+      throw new NotFoundException(`User not found with ID: ${userId}`);
+    }
+
+    const deletedUserEntity = await this.userRepository.deleteById(userId);
+    const user = this.userMapper.entityToModel(deletedUserEntity);
+    this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
     return user;
   }
 
@@ -239,7 +318,7 @@ export class UserService {
 
       const updateUserDto: UpdateUserDto = {
         name: name ? name : '',
-        isActive: role === RoleEnum.ADMIN ? true : false,
+        isActive: true,
         roleId: roleEntity.id,
       };
       updateUsersPromises.push(() => this.userRepository.updateByEmail(email, updateUserDto));
@@ -266,85 +345,6 @@ export class UserService {
     } else {
       return 0;
     }
-  }
-
-  async updateProfileById(userId: number, updateProfileDto: UpdateProfileDto): Promise<UserModel> {
-    this.logger.debug('Update profile by ID');
-    const { name, password } = updateProfileDto;
-    if (!userId || !name || !password) {
-      throw new BadRequestException('User ID, password or first name undefined');
-    }
-
-    this.logger.debug(`Find user by ID: ${userId}`);
-    const filterById: FilterUserDto = {
-      id: userId,
-    };
-    const userEntity = await this.userRepository.findOne(filterById);
-    this.logger.debug(`User found: ${JSON.stringify(userEntity)}`);
-    if (!userEntity) {
-      throw new NotFoundException(`User not found with ID: ${userId}`);
-    }
-
-    const updateUserDto: UpdateUserDto = {
-      password,
-      name,
-      isActive: true,
-    };
-
-    const updatedUserEntity = await this.userRepository.updateById(userId, updateUserDto);
-    const user = this.userMapper.entityToModel(updatedUserEntity);
-    this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
-
-    return user;
-  }
-
-  async updateEmailById(userId: number, updateEmailDto: UpdateEmailDto): Promise<UserModel> {
-    this.logger.debug('Update user by ID');
-    const { email } = updateEmailDto;
-    if (!userId || !email) {
-      throw new BadRequestException('User ID, email or first name undefined');
-    }
-
-    this.logger.debug(`Find user by ID: ${userId}`);
-    const filterById: FilterUserDto = {
-      id: userId,
-    };
-    const userEntity = await this.userRepository.findOne(filterById);
-    this.logger.debug(`User found: ${JSON.stringify(userEntity)}`);
-    if (!userEntity) {
-      throw new NotFoundException(`User not found with ID: ${userId}`);
-    }
-
-    const updateUserDto: UpdateUserDto = {
-      email,
-    };
-
-    const updatedUserEntity = await this.userRepository.updateById(userId, updateUserDto);
-    const user = this.userMapper.entityToModel(updatedUserEntity);
-    this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
-    return user;
-  }
-
-  async deleteById(userId: number): Promise<UserModel> {
-    this.logger.debug('Delete user by ID');
-    if (!userId) {
-      throw new BadRequestException('User ID undefined');
-    }
-
-    this.logger.debug(`Find user by ID: ${userId}`);
-    const filterById: FilterUserDto = {
-      id: userId,
-    };
-    const userEntity = await this.userRepository.findOne(filterById);
-    this.logger.debug(`User found: ${JSON.stringify(userEntity)}`);
-    if (!userEntity) {
-      throw new NotFoundException(`User not found with ID: ${userId}`);
-    }
-
-    const deletedUserEntity = await this.userRepository.deleteById(userId);
-    const user = this.userMapper.entityToModel(deletedUserEntity);
-    this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
-    return user;
   }
 
   private generateRandomString(length: number): string {

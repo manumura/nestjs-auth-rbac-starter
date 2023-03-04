@@ -4,12 +4,13 @@ import {
   Delete,
   Get,
   Logger, Param,
-  ParseIntPipe, Put,
+  ParseIntPipe, Post, Put,
   Query, UseGuards, ValidationPipe
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import {
-  ApiBearerAuth, ApiForbiddenResponse,
+  ApiBadRequestResponse,
+  ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse,
   ApiOkResponse,
   ApiUnauthorizedResponse
 } from '@nestjs/swagger';
@@ -17,6 +18,7 @@ import { RolesGuard } from '../../authentication/guard/roles.guard';
 import { UserActiveGuard } from '../../authentication/guard/user.active.guard';
 import { Roles } from '../../shared/decorator/roles.decorator';
 import { PageModel } from '../../shared/model/page.model';
+import { CreateUserDto } from '../dto/create.user.dto';
 import { GetUsersDto } from '../dto/get.users.dto';
 import { UpdateEmailDto } from '../dto/update.email.dto';
 import { Role } from '../model/role.model';
@@ -29,6 +31,21 @@ export class UserController {
   private logger = new Logger('UserController');
 
   constructor(private readonly userService: UserService) {}
+
+  @Post('/v1/users')
+  @Roles(Role.ADMIN)
+  @UseGuards(AuthGuard(), UserActiveGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiUnauthorizedResponse()
+  @ApiForbiddenResponse()
+  @ApiCreatedResponse({
+    description: 'The record has been successfully created.',
+    type: UserModel,
+  })
+  @ApiBadRequestResponse({ description: 'Validation failed' })
+  createUser(@Body(ValidationPipe) userData: CreateUserDto): Promise<UserModel> {
+    return this.userService.createUser(userData);
+  }
 
   @Get('/v1/users')
   @Roles(Role.ADMIN)

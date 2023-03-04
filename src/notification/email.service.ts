@@ -1,18 +1,14 @@
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable, Logger } from '@nestjs/common';
-import { FilterUsersDto } from 'src/user/dto/filter.users.dto';
-import { UserWithRole } from '../../prisma/custom-types';
 import { appConstants } from '../app.constants';
 import { appConfig } from '../config/config';
 import { LanguageCode } from '../user/model/language-code.model';
-import { Role } from '../user/model/role.model';
-import { UserRepository } from '../user/repository/user.repository';
 
 @Injectable()
 export class EmailService {
   private logger = new Logger('EmailService');
 
-  constructor(private readonly mailerService: MailerService, private readonly userRepository: UserRepository) {}
+  constructor(private readonly mailerService: MailerService) {}
 
   async sendResetPasswordEmail(email: string, langCode: string, token: string): Promise<any> {
     this.logger.verbose(`Send reset password email to: ${email}`);
