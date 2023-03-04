@@ -1,0 +1,5 @@
+log:
+  level:
+    console: error
+    file: error
+    query: query, error
