@@ -85,13 +85,14 @@ export class AuthenticationTokenRepository {
 
   async generate(accessToken: string, refreshToken: string, userId: number): Promise<AuthenticationToken | undefined> {
     // Transaction : remove existing token + create new token
+    // https://github.com/prisma/prisma/issues/4072
     const authToken = await this.prisma.$transaction(async (tx) => {
       this.logger.debug('Begin transaction: remove existing token');
       await tx.authenticationToken.delete({
         where: {
           userId,
         },
-      });
+      }).catch(err => this.logger.error(err));
 
       this.logger.debug('Create new token');
       const data = {
