@@ -1,9 +1,9 @@
 import { IsEmail, IsString, MaxLength, MinLength } from 'class-validator';
-import { IsEmailExist } from '../validation/IsEmailExist';
+import { IsUserEmailAlreadyExist } from '../validation/IsUserEmailAlreadyExist';
 
 export class RegisterDto {
   @IsEmail()
-  @IsEmailExist({
+  @IsUserEmailAlreadyExist({
     message: 'User email $value already exists',
   })
   public email: string;

@@ -11,9 +11,9 @@ import { FilterUserDto } from '../dto/filter.user.dto';
 import { FilterUsersDto } from '../dto/filter.users.dto';
 import { GetUsersDto } from '../dto/get.users.dto';
 import { RegisterDto } from '../dto/register.dto';
-import { UpdateEmailDto } from '../dto/update.email.dto';
 import { UpdateProfileDto } from '../dto/update.profile.dto';
 import { UpdateUserDto } from '../dto/update.user.dto';
+import { UpdateUserEntityDto } from '../dto/update.user.entity.dto';
 import { UserMapper } from '../mapper/user.mapper';
 import { Role as RoleEnum } from '../model/role.model';
 import { UserModel } from '../model/user.model';
@@ -76,24 +76,7 @@ export class UserService {
     return user;
   }
 
-  async findByEmail(email: string): Promise<UserModel> {
-    if (!email) {
-      throw new BadRequestException('Email cannot be undefined');
-    }
-
-    const filter: FilterUserDto = {
-      email,
-    };
-    const entity = await this.userRepository.findOne(filter);
-    if (!entity) {
-      throw new NotFoundException(`User with email ${email} not found`);
-    }
-    const user = this.userMapper.entityToModel(entity);
-    this.logger.debug(`User found: ${JSON.stringify(user)}`);
-    return user;
-  }
-
-  async findOneByValidResetPasswordToken(token: string): Promise<UserModel> {
+  async findByValidResetPasswordToken(token: string): Promise<UserModel> {
     if (!token) {
       throw new BadRequestException('Token cannot be undefined');
     }
@@ -179,23 +162,23 @@ export class UserService {
       throw new NotFoundException(`User not found with ID: ${userId}`);
     }
 
-    const updateUserDto: UpdateUserDto = {
+    const updateUserEntityDto: UpdateUserEntityDto = {
       password,
       name,
     };
 
-    const updatedUserEntity = await this.userRepository.updateById(userId, updateUserDto);
+    const updatedUserEntity = await this.userRepository.updateById(userId, updateUserEntityDto);
     const user = this.userMapper.entityToModel(updatedUserEntity);
     this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
 
     return user;
   }
 
-  async updateEmailById(userId: number, updateEmailDto: UpdateEmailDto): Promise<UserModel> {
+  async updateUserById(userId: number, updateUserDto: UpdateUserDto): Promise<UserModel> {
     this.logger.debug('Update user by ID');
-    const { email } = updateEmailDto;
-    if (!userId || !email) {
-      throw new BadRequestException('User ID, email or first name undefined');
+    const { email, password, name, active, role } = updateUserDto;
+    if (!userId) {
+      throw new BadRequestException('User ID undefined');
     }
 
     this.logger.debug(`Find user by ID: ${userId}`);
@@ -208,11 +191,30 @@ export class UserService {
       throw new NotFoundException(`User not found with ID: ${userId}`);
     }
 
-    const updateUserDto: UpdateUserDto = {
+    if (email) {
+      const isUserEmailAlreadyExists = await this.userRepository.isUserEmailAlreadyExists(email, userId);
+      this.logger.debug(`User found with email ${email}: ${isUserEmailAlreadyExists}`);
+      if (isUserEmailAlreadyExists) {
+        throw new BadRequestException(`User email ${email} already exists`);
+      }
+    }
+
+    const updateUserEntityDto: UpdateUserEntityDto = {
       email,
+      password,
+      name,
+      isActive: active,
     };
 
-    const updatedUserEntity = await this.userRepository.updateById(userId, updateUserDto);
+    if (role) {
+      const roleEntity = await this.roleRepository.findByName(role);
+      if (!roleEntity) {
+        throw new NotFoundException(`Role not found by name: ${role}`);
+      }
+      updateUserEntityDto.roleId = roleEntity.id;
+    }
+
+    const updatedUserEntity = await this.userRepository.updateById(userId, updateUserEntityDto);
     const user = this.userMapper.entityToModel(updatedUserEntity);
     this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
     return user;
@@ -316,12 +318,12 @@ export class UserService {
         return;
       }
 
-      const updateUserDto: UpdateUserDto = {
+      const updateUserEntityDto: UpdateUserEntityDto = {
         name: name ? name : '',
         isActive: true,
         roleId: roleEntity.id,
       };
-      updateUsersPromises.push(() => this.userRepository.updateByEmail(email, updateUserDto));
+      updateUsersPromises.push(() => this.userRepository.updateByEmail(email, updateUserEntityDto));
     });
 
     const usersUpdated = await Promise.all(updateUsersPromises.map((p) => p().catch((err) => this.logger.error(err))));

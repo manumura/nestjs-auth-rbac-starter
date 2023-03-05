@@ -20,4 +20,4 @@ mail:
   sender: '"Hello" <hello@email.com>'
 
 link:
-  reset-password: http://localhost:9002/reset-password
+  reset-password: http://localhost:9002/reset-password/

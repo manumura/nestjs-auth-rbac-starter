@@ -1,18 +1,28 @@
-import { IsBoolean, IsPositive, IsString } from 'class-validator';
+import { IsBoolean, IsEmail, IsEnum, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
+import { Role } from '../model/role.model';
 
 export class UpdateUserDto {
-  @IsString()
-  email?: string;
+  @IsOptional()
+  @IsEmail()
+  public email?: string;
 
+  @IsOptional()
   @IsString()
-  password?: string;
+  @MinLength(8)
+  public password?: string;
 
+  @IsOptional()
   @IsString()
-  name?: string;
+  @MaxLength(100)
+  public name?: string;
 
+  @IsOptional()
   @IsBoolean()
-  isActive?: boolean;
+  public active?: boolean;
 
-  @IsPositive()
-  roleId?: number;
+  @IsOptional()
+  @IsEnum(Role, {
+    message: 'Role is empty or invalid',
+  })
+  public role?: Role;
 }

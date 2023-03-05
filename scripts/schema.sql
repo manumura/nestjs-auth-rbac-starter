@@ -22,7 +22,7 @@ CREATE TABLE `user` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `IDX_user_email` (`email`),
   KEY `FK_user_role_id_role_id` (`role_id`),
-  CONSTRAINT `FK_user_role_id_role_id` FOREIGN KEY (`role_id`) REFERENCES `role` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+  CONSTRAINT `FK_user_role_id_role_id` FOREIGN KEY (`role_id`) REFERENCES `role` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `authentication_token` (
@@ -36,7 +36,7 @@ CREATE TABLE `authentication_token` (
   UNIQUE KEY `IDX_authentication_token_access_token` (`access_token`),
   UNIQUE KEY `IDX_authentication_token_refresh_token` (`refresh_token`),
   UNIQUE KEY `REL_authentication_token_user_id` (`user_id`),
-  CONSTRAINT `FK_authentication_token_user_id_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+  CONSTRAINT `FK_authentication_token_user_id_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `reset_password_token` (
@@ -48,5 +48,5 @@ CREATE TABLE `reset_password_token` (
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `IDX_reset_password_token_token` (`token`),
   UNIQUE KEY `REL_reset_password_token_user_id` (`user_id`),
-  CONSTRAINT `FK_reset_password_token_user_id_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+  CONSTRAINT `FK_reset_password_token_user_id_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

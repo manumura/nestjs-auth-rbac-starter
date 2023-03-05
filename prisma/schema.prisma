@@ -14,7 +14,7 @@ model AuthenticationToken {
   refreshToken         String   @unique(map: "IDX_authentication_token_refresh_token") @map("refresh_token") @db.VarChar(255)
   refreshTokenExpireAt DateTime @map("refresh_token_expire_at") @db.DateTime(0)
   createdAt            DateTime @map("created_at") @db.DateTime(0)
-  user                 User     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_authentication_token_user_id_user_id")
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "FK_authentication_token_user_id_user_id")
 
   @@map("authentication_token")
 }
@@ -25,7 +25,7 @@ model ResetPasswordToken {
   expiredAt DateTime  @map("expired_at") @db.DateTime(0)
   createdAt DateTime  @map("created_at") @db.DateTime(0)
   updatedAt DateTime? @map("updated_at") @db.DateTime(0)
-  user      User      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_reset_password_token_user_id_user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "FK_reset_password_token_user_id_user_id")
 
   @@map("reset_password_token")
 }
@@ -50,7 +50,7 @@ model User {
   roleId              Int                  @map("role_id")
   authenticationToken AuthenticationToken?
   resetPasswordToken  ResetPasswordToken?
-  role                Role                 @relation(fields: [roleId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_user_role_id_role_id")
+  role                Role                 @relation(fields: [roleId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "FK_user_role_id_role_id")
 
   @@index([roleId], map: "FK_user_role_id_role_id")
   @@map("user")

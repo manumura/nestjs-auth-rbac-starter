@@ -18,7 +18,7 @@ export class IsResetPasswordTokenValidConstraint implements ValidatorConstraintI
   async validate(token: string, args: ValidationArguments): Promise<boolean> {
     this.logger.debug(`Find user by token: ${token} and expiry date`);
     try {
-      const user = await this.userService.findOneByValidResetPasswordToken(token);
+      const user = await this.userService.findByValidResetPasswordToken(token);
       const isValid = !!user;
       this.logger.debug(`Is valid? ${isValid}`);
       return isValid;

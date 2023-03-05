@@ -10,7 +10,7 @@ import { CreateUserDto } from '../dto/create.user.dto';
 import { FilterUserDto } from '../dto/filter.user.dto';
 import { FilterUsersDto } from '../dto/filter.users.dto';
 import { GetUsersDto } from '../dto/get.users.dto';
-import { UpdateUserDto } from '../dto/update.user.dto';
+import { UpdateUserEntityDto } from '../dto/update.user.entity.dto';
 import { Role as RoleEnum } from '../model/role.model';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -54,9 +54,7 @@ export class UserRepository {
       initUserToCreatePromises.push(() => this.initUserToCreate(createUserDto, rolesMap));
     });
 
-    const users = await Promise.all(
-      initUserToCreatePromises.map((p) => p().catch((err) => this.logger.error(err))),
-    );
+    const users = await Promise.all(initUserToCreatePromises.map((p) => p().catch((err) => this.logger.error(err))));
     const usersToInsert = users.filter((user): user is Prisma.UserCreateManyInput => user !== null);
 
     const result = await this.prisma.user.createMany({
@@ -89,14 +87,8 @@ export class UserRepository {
     return userEntity;
   }
 
-  async updateById(id: number, updateUserDto: UpdateUserDto): Promise<UserWithRole> {
-    const {
-      email,
-      password,
-      name,
-      isActive,
-      roleId,
-    } = updateUserDto;
+  async updateById(id: number, updateUserEntityDto: UpdateUserEntityDto): Promise<UserWithRole> {
+    const { email, password, name, isActive, roleId } = updateUserEntityDto;
     const hashedPassword = password ? await this.generateHashedPassword(password) : undefined;
     const userEntityToUpdate: Prisma.UserUpdateInput = {
       ...(email ? { email } : {}),
@@ -120,9 +112,8 @@ export class UserRepository {
     });
   }
 
-  async updateByEmail(email: string, updateUserDto: UpdateUserDto): Promise<UserWithRole> {
-    const { password, name, isActive, roleId } =
-      updateUserDto;
+  async updateByEmail(email: string, updateUserEntityDto: UpdateUserEntityDto): Promise<UserWithRole> {
+    const { password, name, isActive, roleId } = updateUserEntityDto;
     const hashedPassword = password ? await this.generateHashedPassword(password) : undefined;
     const userEntityToUpdate: Prisma.UserUpdateInput = {
       ...(hashedPassword ? { password: hashedPassword } : {}),
@@ -264,7 +255,32 @@ export class UserRepository {
     });
   }
 
+  async isUserEmailAlreadyExists(email: string, id?: number): Promise<boolean> {
+    if (!email) {
+      this.logger.error('User email are required');
+      return false;
+    }
+
+    const userEntity = await this.prisma.user.findFirst({
+      where: {
+        email,
+        ...(id
+          ? {
+              id: {
+                not: id,
+              },
+            }
+          : {}),
+      },
+      include: {
+        role: true,
+      },
+    });
+    return !!userEntity;
+  }
+
   async deleteById(userId: number): Promise<UserWithRole> {
+    // ON DELETE CASCADE
     return this.prisma.user.delete({
       where: {
         id: userId,

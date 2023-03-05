@@ -1,10 +1,10 @@
 import { IsEmail, IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
 import { Role } from '../model/role.model';
-import { IsEmailExist } from '../validation/IsEmailExist';
+import { IsUserEmailAlreadyExist } from '../validation/IsUserEmailAlreadyExist';
 
 export class CreateUserDto {
   @IsEmail()
-  @IsEmailExist({
+  @IsUserEmailAlreadyExist({
     message: 'User email $value already exists',
   })
   public email: string;

@@ -8,7 +8,6 @@ import { UserMapper } from './mapper/user.mapper';
 import { RoleRepository } from './repository/role.repository';
 import { UserRepository } from './repository/user.repository';
 import { UserService } from './service/user.service';
-import { IsEmailExistConstraint } from './validation/IsEmailExist';
 import { IsUserEmailAlreadyExistConstraint } from './validation/IsUserEmailAlreadyExist';
 
 @Module({
@@ -21,7 +20,6 @@ import { IsUserEmailAlreadyExistConstraint } from './validation/IsUserEmailAlrea
     UserService,
     EmailService,
     UserMapper,
-    IsEmailExistConstraint,
     IsUserEmailAlreadyExistConstraint,
     UserRepository,
     RoleRepository,

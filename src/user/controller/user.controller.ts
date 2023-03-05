@@ -20,7 +20,7 @@ import { Roles } from '../../shared/decorator/roles.decorator';
 import { PageModel } from '../../shared/model/page.model';
 import { CreateUserDto } from '../dto/create.user.dto';
 import { GetUsersDto } from '../dto/get.users.dto';
-import { UpdateEmailDto } from '../dto/update.email.dto';
+import { UpdateUserDto } from '../dto/update.user.dto';
 import { Role } from '../model/role.model';
 import { UserModel } from '../model/user.model';
 import { UserPageModel } from '../model/user.page.model';
@@ -78,9 +78,9 @@ export class UserController {
   @ApiOkResponse({ type: UserModel })
   updateUserById(
     @Param('id', ParseIntPipe) id: number,
-    @Body(ValidationPipe) updateEmailDto: UpdateEmailDto,
+    @Body(ValidationPipe) updateUserDto: UpdateUserDto,
   ): Promise<UserModel> {
-    return this.userService.updateEmailById(id, updateEmailDto);
+    return this.userService.updateUserById(id, updateUserDto);
   }
 
   @Delete('/v1/users/:id')
