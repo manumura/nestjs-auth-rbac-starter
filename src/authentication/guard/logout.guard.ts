@@ -1,6 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { UserMapper } from '../../user/mapper/user.mapper';
 import { AuthenticationTokenRepository } from '../repository/authentication.token.repository';
+import extractToken from '../strategy/token.utils';
 
 @Injectable()
 export class LogoutGuard implements CanActivate {
@@ -14,27 +15,17 @@ export class LogoutGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const headers = request.headers;
-
-    if (!headers || !headers.authorization) {
-      this.logger.error('No authorization header found');
-      throw new UnauthorizedException();
-    }
-
-    const authorizationHeader = headers.authorization as string;
-    if (!authorizationHeader.toLowerCase().includes('bearer')) {
-      this.logger.error('No bearer header found');
-      throw new UnauthorizedException();
-    }
-
-    const token = authorizationHeader.split(' ')[1];
+    const cookies = request.cookies;
+    const token = extractToken(cookies, headers);
+    
     if (!token) {
-      this.logger.error('Token not found');
+      this.logger.error('Access token not found');
       throw new UnauthorizedException();
     }
 
     const authTokenEntity = await this.authenticationTokenRepository.findByAccessToken(token);
     if (!authTokenEntity) {
-      this.logger.error('Access token not found');
+      this.logger.error(`Authentication not found in DB with token: ${token}`);
       throw new UnauthorizedException();
     }
 

@@ -2,6 +2,10 @@ import 'dotenv/config';
 import config from 'config';
 
 const NODE_ENV = process.env.NODE_ENV;
+
+const COOKIE_SECRET = process.env.COOKIE_SECRET;
+const CORS_ALLOWED_ORIGNS = process.env.CORS_ALLOWED_ORIGNS;
+
 const SERVER_BASEURL = process.env.SERVER_BASEURL;
 const SERVER_PORT = process.env.SERVER_PORT;
 const SERVER_PROTOCOL = process.env.SERVER_PROTOCOL;
@@ -32,6 +36,8 @@ const MAIL_SENDER = config.get<string>('mail.sender');
 
 export const appConfig = {
   NODE_ENV,
+  COOKIE_SECRET,
+  CORS_ALLOWED_ORIGNS,
   SERVER_BASEURL,
   SERVER_PORT,
   SERVER_PROTOCOL,

@@ -10,4 +10,6 @@ export const appConstants = {
     fr: 'Votre mot de passe MyApp!',
   },
   TEMPORARY_PASSWORD_EMAIL_TEMPLATE: 'temporary-password',
+  ACCESS_TOKEN_NAME: 'accessToken',
+  REFRESH_TOKEN_NAME: 'refreshToken',
 };

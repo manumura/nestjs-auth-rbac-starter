@@ -5,6 +5,7 @@ import moment from 'moment';
 import { Strategy } from 'passport-strategy';
 import { UserMapper } from '../../user/mapper/user.mapper';
 import { AuthenticationTokenRepository } from '../repository/authentication.token.repository';
+import extractToken from './token.utils';
 
 @Injectable()
 export class CustomStrategy extends PassportStrategy(Strategy, 'custom') {
@@ -19,28 +20,20 @@ export class CustomStrategy extends PassportStrategy(Strategy, 'custom') {
 
   async authenticate(request: Request): Promise<void> {
     const headers = request.headers;
+    const cookies = request.cookies;
+    const token = extractToken(cookies, headers);
+    console.log('cookies', cookies);
+    console.log('headers', headers);
 
-    if (!headers || !headers.authorization) {
-      this.logger.error('Authorization header not found');
-      return this.fail({ message: 'Authorization header not found' }, 401);
-    }
-
-    const authorizationHeader = headers.authorization;
-    if (!authorizationHeader.toLowerCase().includes('bearer')) {
-      this.logger.error('Bearer header not found');
-      return this.fail({ message: 'Bearer header not found' }, 401);
-    }
-
-    const token = authorizationHeader.split(' ')[1];
     if (!token) {
-      this.logger.error('Token header not found');
-      return this.fail({ message: 'Token header not found' }, 401);
+      this.logger.error('Access token not found');
+      return this.fail({ message: 'Access token not found' }, 401);
     }
 
     const authTokenEntity = await this.authenticationTokenRepository.findByAccessToken(token);
     if (!authTokenEntity) {
-      this.logger.error(`Access token not found: ${token}`);
-      return this.fail({ message: 'Access token not found' }, 401);
+      this.logger.error(`Authentication not found in DB with token: ${token}`);
+      return this.fail({ message: 'Authentication not found in DB with token' }, 401);
     }
 
     // Check validity of token

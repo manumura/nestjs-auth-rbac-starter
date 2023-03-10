@@ -5,6 +5,8 @@ import { appConfig } from './config';
 export function validateEnv() {
   cleanEnv(appConfig, {
     NODE_ENV: str(),
+    COOKIE_SECRET: str(),
+    CORS_ALLOWED_ORIGNS: str(),
     SERVER_BASEURL: url(),
     SERVER_PORT: port(),
     SERVER_PROTOCOL: str(),

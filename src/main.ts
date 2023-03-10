@@ -1,3 +1,4 @@
+import fastifyCookie from '@fastify/cookie';
 import helmet from '@fastify/helmet';
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
@@ -27,10 +28,11 @@ async function bootstrap() {
   await app.register(helmet);
 
   app.enableCors({
-    origin: '*',
+    origin: appConfig.CORS_ALLOWED_ORIGNS,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     preflightContinue: false,
     optionsSuccessStatus: 204,
+    credentials: true, // use cookies
   });
   app.setGlobalPrefix('api');
   app.useGlobalFilters(new HttpExceptionFilter());
@@ -40,6 +42,10 @@ async function bootstrap() {
 
   const prismaService = app.get(PrismaService);
   await prismaService.enableShutdownHooks(app);
+
+  await app.register(fastifyCookie, {
+    secret: appConfig.COOKIE_SECRET,
+  });
 
   // http://localhost:9002/swagger
   if (appConfig.NODE_ENV !== 'prod') {
