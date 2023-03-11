@@ -22,6 +22,7 @@ export class CustomStrategy extends PassportStrategy(Strategy, 'custom') {
     const headers = request.headers;
     const cookies = request.cookies;
     const token = extractToken(cookies, headers);
+    // TODO remove
     console.log('cookies', cookies);
     console.log('headers', headers);
 

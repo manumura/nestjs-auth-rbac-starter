@@ -58,10 +58,11 @@ export class AuthenticationController {
   @ApiUnauthorizedResponse()
   @ApiForbiddenResponse()
   @ApiOkResponse({ type: UserModel })
-  logout(@GetUser() user: UserModel, @Res({ passthrough: true }) response: FastifyReply): Promise<void> {
+  async logout(@GetUser() user: UserModel, @Res({ passthrough: true }) response: FastifyReply): Promise<UserModel> {
     this.logger.log(`User with email ${user.email} logged out`);
     this.clearAuthCookies(response);
-    return this.authenticationService.logout(user.id);
+    await this.authenticationService.logout(user.id);
+    return user;
   }
 
   @Post('/v1/refresh-token')

@@ -16,6 +16,9 @@ export class LogoutGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const headers = request.headers;
     const cookies = request.cookies;
+    // TODO remove
+    console.log('cookies', cookies);
+    console.log('headers', headers);
     const token = extractToken(cookies, headers);
     
     if (!token) {
