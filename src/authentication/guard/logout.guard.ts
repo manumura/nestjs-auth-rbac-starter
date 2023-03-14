@@ -1,4 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { appConstants } from '../../app.constants';
 import { UserMapper } from '../../user/mapper/user.mapper';
 import { AuthenticationTokenRepository } from '../repository/authentication.token.repository';
 import extractToken from '../strategy/token.utils';
@@ -16,10 +17,7 @@ export class LogoutGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const headers = request.headers;
     const cookies = request.cookies;
-    // TODO remove
-    console.log('cookies', cookies);
-    console.log('headers', headers);
-    const token = extractToken(cookies, headers);
+    const token = extractToken(cookies, headers, appConstants.ACCESS_TOKEN_NAME);
     
     if (!token) {
       this.logger.error('Access token not found');
@@ -28,7 +26,7 @@ export class LogoutGuard implements CanActivate {
 
     const authTokenEntity = await this.authenticationTokenRepository.findByAccessToken(token);
     if (!authTokenEntity) {
-      this.logger.error(`Authentication not found in DB with token: ${token}`);
+      this.logger.error(`Authentication not found in DB with access token: ${token}`);
       throw new UnauthorizedException();
     }
 

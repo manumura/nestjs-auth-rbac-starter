@@ -3,6 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import moment from 'moment';
 import { Strategy } from 'passport-strategy';
+import { appConstants } from '../../app.constants';
 import { UserMapper } from '../../user/mapper/user.mapper';
 import { AuthenticationTokenRepository } from '../repository/authentication.token.repository';
 import extractToken from './token.utils';
@@ -21,10 +22,7 @@ export class CustomStrategy extends PassportStrategy(Strategy, 'custom') {
   async authenticate(request: Request): Promise<void> {
     const headers = request.headers;
     const cookies = request.cookies;
-    const token = extractToken(cookies, headers);
-    // TODO remove
-    console.log('cookies', cookies);
-    console.log('headers', headers);
+    const token = extractToken(cookies, headers, appConstants.ACCESS_TOKEN_NAME);
 
     if (!token) {
       this.logger.error('Access token not found');
@@ -33,8 +31,8 @@ export class CustomStrategy extends PassportStrategy(Strategy, 'custom') {
 
     const authTokenEntity = await this.authenticationTokenRepository.findByAccessToken(token);
     if (!authTokenEntity) {
-      this.logger.error(`Authentication not found in DB with token: ${token}`);
-      return this.fail({ message: 'Authentication not found in DB with token' }, 401);
+      this.logger.error(`Authentication not found in DB with access token: ${token}`);
+      return this.fail({ message: 'Authentication not found in DB with access token' }, 401);
     }
 
     // Check validity of token
