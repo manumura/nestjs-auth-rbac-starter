@@ -148,8 +148,8 @@ export class UserService {
   async updateProfileById(userId: number, updateProfileDto: UpdateProfileDto): Promise<UserModel> {
     this.logger.debug('Update profile by ID');
     const { name, password } = updateProfileDto;
-    if (!userId || !name || !password) {
-      throw new BadRequestException('User ID, password or first name undefined');
+    if (!userId || (!name && !password)) {
+      throw new BadRequestException('User ID, or name and password undefined');
     }
 
     this.logger.debug(`Find user by ID: ${userId}`);
