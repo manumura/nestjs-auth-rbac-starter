@@ -62,7 +62,7 @@ export class ResetPasswordService {
       throw new NotFoundException(`User with email ${email} not found`);
     }
 
-    const resetPasswordTokenCreated = await this.resetPasswordTokenRepository.create(userEntity.id);
+    const resetPasswordTokenCreated = await this.resetPasswordTokenRepository.generate(userEntity.id);
     if (!resetPasswordTokenCreated) {
       throw new InternalServerErrorException('Reset password token creation failed');
     }

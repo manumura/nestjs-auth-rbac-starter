@@ -20,4 +20,4 @@ mail:
   sender: '"MyApp" <manumuradev@gmail.com>'
 
 link:
-  reset-password: http://localhost:9002/reset-password/
+  reset-password: http://localhost:3000/reset-password?token=

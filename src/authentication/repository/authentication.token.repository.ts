@@ -59,21 +59,6 @@ export class AuthenticationTokenRepository {
     });
   }
 
-  async create(accessToken: string, refreshToken: string, userId: number): Promise<AuthenticationToken | undefined> {
-    const data = {
-      accessToken,
-      accessTokenExpireAt: this.getAccessTokenExpiryDate(),
-      refreshToken,
-      refreshTokenExpireAt: this.getRefreshTokenExpiryDate(),
-      userId,
-      createdAt: moment().utc().toDate(),
-    };
-    const authToken = await this.prisma.authenticationToken.create({
-      data,
-    });
-    return authToken;
-  }
-
   async remove(userId: number): Promise<AuthenticationToken | undefined> {
     const authToken = await this.prisma.authenticationToken.delete({
       where: {
@@ -83,7 +68,7 @@ export class AuthenticationTokenRepository {
     return authToken;
   }
 
-  async generate(accessToken: string, refreshToken: string, userId: number): Promise<AuthenticationToken | undefined> {
+  async generate(accessToken: string, refreshToken: string, userId: number): Promise<AuthenticationToken> {
     // Transaction : remove existing token + create new token
     // https://github.com/prisma/prisma/issues/4072
     const authToken = await this.prisma.$transaction(async (tx) => {

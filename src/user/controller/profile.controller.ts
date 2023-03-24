@@ -7,7 +7,6 @@ import {
   ApiUnauthorizedResponse
 } from '@nestjs/swagger';
 import { UserActiveGuard } from '../../authentication/guard/user.active.guard';
-import { UserInactiveGuard } from '../../authentication/guard/user.inactive.guard';
 import { GetUser } from '../../shared/decorator/get-user.decorator';
 import { UpdateProfileDto } from '../dto/update.profile.dto';
 import { UserModel } from '../model/user.model';
