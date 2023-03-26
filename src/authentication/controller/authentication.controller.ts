@@ -11,6 +11,7 @@ import { FastifyReply } from 'fastify';
 import { appConstants } from '../../app.constants';
 import { COOKIE_OPTIONS } from '../../config/cookie.config';
 import { GetUser } from '../../shared/decorator/get-user.decorator';
+import { clearAuthCookies, setAuthCookies } from '../../shared/util/cookies';
 import { RegisterDto } from '../../user/dto/register.dto';
 import { UserModel } from '../../user/model/user.model';
 import { UserService } from '../../user/service/user.service';
@@ -47,7 +48,7 @@ export class AuthenticationController {
   @ApiBadRequestResponse({ description: 'Validation failed' })
   async login(@Body(ValidationPipe) loginData: LoginDto, @Res({ passthrough: true }) response: FastifyReply): Promise<LoginModel> {
     const login = await this.authenticationService.login(loginData);
-    this.setAuthCookies(response, login);
+    setAuthCookies(response, login);
     return login;
   }
 
@@ -60,7 +61,7 @@ export class AuthenticationController {
   @ApiOkResponse({ type: UserModel })
   async logout(@GetUser() user: UserModel, @Res({ passthrough: true }) response: FastifyReply): Promise<UserModel> {
     this.logger.log(`User with email ${user.email} logged out`);
-    this.clearAuthCookies(response);
+    clearAuthCookies(response);
     await this.authenticationService.logout(user.id);
     return user;
   }
@@ -75,17 +76,7 @@ export class AuthenticationController {
   async refreshToken(@GetUser() user: UserModel, @Res({ passthrough: true }) response: FastifyReply): Promise<LoginModel> {
     this.logger.log(`Refresh token for user with email ${user.email}`);
     const login = await this.authenticationService.refreshToken(user.id);
-    this.setAuthCookies(response, login);
+    setAuthCookies(response, login);
     return login;
-  }
-
-  private setAuthCookies(response: FastifyReply, login: LoginModel) {
-    response.setCookie(appConstants.ACCESS_TOKEN_NAME, login.accessToken, COOKIE_OPTIONS);
-    response.setCookie(appConstants.REFRESH_TOKEN_NAME, login.refreshToken, COOKIE_OPTIONS);
-  }
-
-  private clearAuthCookies(response: FastifyReply) {
-    response.clearCookie(appConstants.ACCESS_TOKEN_NAME, COOKIE_OPTIONS);
-    response.clearCookie(appConstants.REFRESH_TOKEN_NAME, COOKIE_OPTIONS);
   }
 }

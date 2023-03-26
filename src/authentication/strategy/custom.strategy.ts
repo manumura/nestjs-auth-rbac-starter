@@ -22,7 +22,7 @@ export class CustomStrategy extends PassportStrategy(Strategy, 'custom') {
   async authenticate(request: Request): Promise<void> {
     const headers = request.headers;
     const cookies = request.cookies;
-    const token = extractToken(cookies, headers, appConstants.ACCESS_TOKEN_NAME);
+    const token = extractToken(cookies, headers, appConstants.ACCESS_TOKEN);
 
     if (!token) {
       this.logger.error('Access token not found');

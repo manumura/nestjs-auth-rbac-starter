@@ -1,5 +1,6 @@
 import { Controller, Get, Logger, Query, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { RealIP } from 'nestjs-real-ip';
 import { appConfig } from '../../config/config';
 
 @Controller()
@@ -7,13 +8,19 @@ export class IndexController {
   private logger = new Logger('IndexController');
 
   @Get('/index')
-  welcome(@Req() req: Request): string {
+  welcome(): string {
+    return 'Welcome to NestJS starter ^^';
+  }
+
+  @Get('/v1/info')
+  info(@Req() req: Request, @RealIP() ip: string) {
     const userAgent = req.headers['user-agent'];
     this.logger.verbose(`User agent detected: ${userAgent}`);
-    if (!userAgent) {
-      return `Welcome to NestJS starter ${appConfig.NODE_ENV}^^`;
-    }
-    return `Welcome to NestJS starter ${appConfig.NODE_ENV}^^ ${userAgent}`;
+    return {
+      env: appConfig.NODE_ENV,
+      userAgent: userAgent,
+      ip,
+    };
   }
 
   @Get('/v1/redirect')

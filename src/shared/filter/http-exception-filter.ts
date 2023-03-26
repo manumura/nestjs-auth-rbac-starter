@@ -3,6 +3,7 @@ import { appConstants } from '../../app.constants';
 import { COOKIE_OPTIONS } from '../../config/cookie.config';
 import { FastifyReply } from 'fastify';
 import { RefreshTokenException } from '../exception/refresh-token.exception';
+import { clearAuthCookies } from '../util/cookies';
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -15,15 +16,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     // Delete cookies if refresh token API returns exception
     if (exception.name === RefreshTokenException.name) {
-      this.clearAuthCookies(response);
+      clearAuthCookies(response);
     }
 
     logger.error(`Uncaught exception ${status} ${request.url}`, exception.stack);
     response.status(status).send(exception.getResponse());
-  }
-
-  private clearAuthCookies(response: FastifyReply) {
-    response.clearCookie(appConstants.ACCESS_TOKEN_NAME, COOKIE_OPTIONS);
-    response.clearCookie(appConstants.REFRESH_TOKEN_NAME, COOKIE_OPTIONS);
   }
 }
