@@ -6,7 +6,6 @@
 logs
 *.log
 npm-debug.log*
-pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
@@ -33,8 +32,13 @@ lerna-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+.history/
+
+/files
+/tmp
+
+Dockerfile
+docker-compose.yml
 
 *.env*
-!.env.template
-.history
-db-data
+db-data/*

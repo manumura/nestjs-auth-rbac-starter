@@ -58,6 +58,21 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
+## Docker
+
+```bash
+# buuild docker image
+docker build -t manumura/nestjs-auth-rbac-starter .
+
+# run docker container
+# (use databse config: DATABASE_URL=mysql://<user>:<password>@host.docker.internal:3306/<db-name>)
+docker run -it --rm -p 9002:9002 --name nestjs-auth-rbac-starter --env-file=.env manumura/nestjs-auth-rbac-starter
+
+# run docker container with docker compose
+# (use databse config: DATABASE_URL=mysql://<user>:<password>@mysql:3306/<db-name>)
+docker compose up
+```
+
 ## Support
 
 Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).

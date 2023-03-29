@@ -70,7 +70,8 @@ async function bootstrap() {
     return;
   }
 
-  await app.listen(port);
+  // https://www.fastify.io/docs/latest/Guides/Getting-Started/#your-first-server
+  await app.listen(port, '0.0.0.0');
   logger.verbose(`Application running on port ${port}, NODE_ENV: ${appConfig.NODE_ENV}`);
 }
 bootstrap();

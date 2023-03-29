@@ -37,7 +37,7 @@ export class EmailService {
       return info;
     } catch (error) {
       this.logger.error(`Failed to send reset password email to ${email}`, error.stack);
-      throw new Error(`Failed to send reset password email to ${email}`);
+      // throw new Error(`Failed to send reset password email to ${email}`);
     }
   }
 
@@ -67,7 +67,7 @@ export class EmailService {
       return info;
     } catch (error) {
       this.logger.error(`Failed to send temporary password email to ${email}`, error.stack);
-      throw new Error(`Failed to send temporary password email to ${email}`);
+      // throw new Error(`Failed to send temporary password email to ${email}`);
     }
   }
 }

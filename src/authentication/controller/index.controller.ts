@@ -9,6 +9,7 @@ export class IndexController {
 
   @Get('/index')
   welcome(): string {
+    this.logger.verbose('index api');
     return 'Welcome to NestJS starter ^^';
   }
 
