@@ -1,7 +1,4 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, Logger } from '@nestjs/common';
-import { appConstants } from '../../app.constants';
-import { COOKIE_OPTIONS } from '../../config/cookie.config';
-import { FastifyReply } from 'fastify';
 import { RefreshTokenException } from '../exception/refresh-token.exception';
 import { clearAuthCookies } from '../util/cookies';
 

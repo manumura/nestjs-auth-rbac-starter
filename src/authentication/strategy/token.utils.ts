@@ -1,6 +1,5 @@
 import { Logger } from '@nestjs/common';
 import { IncomingHttpHeaders } from 'http';
-import { appConstants } from '../../app.constants';
 
 const extractToken = (cookies: any, headers: IncomingHttpHeaders, cookieName: string): string | undefined => {
   const logger = new Logger('extractToken');
@@ -15,7 +14,7 @@ const extractToken = (cookies: any, headers: IncomingHttpHeaders, cookieName: st
     logger.debug('Checking token in authorization header');
     const authorizationHeader = headers.authorization;
     if (authorizationHeader.toLowerCase().includes('bearer')) {
-      logger.error('Bearer token authorization header found');
+      logger.debug('Bearer token authorization header found');
       token = authorizationHeader.split(' ')[1];
     }   
   }
