@@ -30,7 +30,7 @@
     "@nestjs/passport": "^9.0.3",
     "@nestjs/platform-fastify": "^9.4.0",
     "@nestjs/swagger": "^6.3.0",
-    "@prisma/client": "^4.13.0",
+    "@prisma/client": "^4.15.0",
     "bcrypt": "^5.1.0",
     "bfj": "^7.0.2",
     "class-transformer": "^0.5.1",
