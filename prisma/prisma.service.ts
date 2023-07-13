@@ -1,7 +1,7 @@
 import { INestApplication, Injectable, OnModuleInit } from '@nestjs/common';
 import { Logger } from '@nestjs/common/services';
 import { PrismaClient } from '@prisma/client';
-import { PrismaClientOptions } from '@prisma/client/runtime';
+import { PrismaClientOptions } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class PrismaService extends PrismaClient<PrismaClientOptions, 'query' | 'error'> implements OnModuleInit {
@@ -37,17 +37,17 @@ export class PrismaService extends PrismaClient<PrismaClientOptions, 'query' | '
       //   console.log('Query: ' + event.query);
       //   console.log('Duration: ' + event.duration + 'ms');
       // });
-      // this.$on('error', (event) => {
-      //   this.logger.verbose(event.target);
-      // });
+      this.$on('error', (event) => {
+        this.logger.verbose(event.target);
+      });
     } catch (error) {
       this.logger.error(error);
     }
   }
 
-  async enableShutdownHooks(app: INestApplication) {
-    this.$on('beforeExit', async () => {
-      await app.close();
-    });
-  }
+  // async enableShutdownHooks(app: INestApplication) {
+  //   this.$on('beforeExit', async () => {
+  //     await app.close();
+  //   });
+  // }
 }

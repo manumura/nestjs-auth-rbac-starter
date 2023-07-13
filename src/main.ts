@@ -15,6 +15,8 @@ import { loggerOptions } from './config/logger.config';
 import { HttpExceptionFilter } from './shared/filter/http-exception-filter';
 import { UserModule } from './user/user.module';
 
+// TODO access_token_expires_in cookie
+// TODO image upload update profile https://medium.com/@maksim_smagin/software-architecture-101-how-to-upload-file-s3-nodejs-fastify-68fceb5c5133
 // TODO session in redis https://blog.logrocket.com/add-redis-cache-nestjs-app/
 async function bootstrap() {
   const logger = new Logger('bootstrap');
@@ -41,8 +43,8 @@ async function bootstrap() {
   // Starts listening for shutdown hooks
   app.enableShutdownHooks();
 
-  const prismaService = app.get(PrismaService);
-  await prismaService.enableShutdownHooks(app);
+  // const prismaService = app.get(PrismaService);
+  // await prismaService.enableShutdownHooks(app);
 
   await app.register(fastifyCookie, {
     secret: appConfig.COOKIE_SECRET,
