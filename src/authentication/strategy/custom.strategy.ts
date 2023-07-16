@@ -20,34 +20,38 @@ export class CustomStrategy extends PassportStrategy(Strategy, 'custom') {
     super();
   }
 
-  async authenticate(request: Request): Promise<UserModel> {
+  async authenticate(request: Request): Promise<void> {
     const headers = request.headers;
     const cookies = request.cookies;
     const token = extractToken(cookies, headers, appConstants.ACCESS_TOKEN);
 
     if (!token) {
-      throw new UnauthorizedException('Access token not found');
+      this.logger.error('Access token not found');
+      return this.fail({ message: 'Access token not found' }, 401);
     }
 
     const authTokenEntity = await this.authenticationTokenRepository.findByAccessToken(token);
     if (!authTokenEntity) {
-      throw new UnauthorizedException(`Authentication not found in DB with access token: ${token}`);
+      this.logger.error(`Authentication not found in DB with access token: ${token}`);
+      return this.fail({ message: 'Authentication not found in DB with access token' }, 401);
     }
 
     // Check validity of token
     const now = moment().utc();
     const expiredAt = moment(authTokenEntity.accessTokenExpireAt).utc();
     if (expiredAt.isBefore(now)) {
-      throw new UnauthorizedException('Access token is expired');
+      this.logger.error('Access token is expired');
+      return this.fail({ message: 'Access token is expired' }, 401);
     }
 
     const userEntity = authTokenEntity.user;
     if (!userEntity) {
-      throw new UnauthorizedException('User not found with access token');
+      this.logger.error('User not found with access token');
+      return this.fail({ message: 'User not found with access token' }, 401);
     }
     const user = this.userMapper.entityToModel(userEntity);
     this.logger.debug(`User found from access token: ${JSON.stringify(user)}`);
 
-    return user;
+    return this.success(user);
   }
 }
