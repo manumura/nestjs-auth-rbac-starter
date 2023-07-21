@@ -9,7 +9,7 @@ export class LoginModel {
   refreshToken: string;
 
   @ApiProperty()
-  user: UserModel;
+  idToken: string;
 
   @ApiProperty()
   accessTokenExpiresAt: Date;

@@ -6,18 +6,20 @@ import {
   NotFoundException,
   UnauthorizedException
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import bfj from 'bfj';
+import moment from 'moment';
 import { nanoid } from 'nanoid';
 import { FilterUserDto } from 'src/user/dto/filter.user.dto';
 import { UserWithRole } from '../../../prisma/custom-types';
+import { appConfig } from '../../config/config';
 import { UserMapper } from '../../user/mapper/user.mapper';
 import { UserRepository } from '../../user/repository/user.repository';
 import { LoginDto } from '../dto/login.dto';
 import { LoginModel } from '../model/login.model';
 import { TokenModel } from '../model/token.model';
 import { AuthenticationTokenRepository } from '../repository/authentication.token.repository';
-import moment from 'moment';
-import { appConfig } from '../../config/config';
+import { UserModel } from '../../user/model/user.model';
 
 @Injectable()
 export class AuthenticationService {
@@ -27,6 +29,7 @@ export class AuthenticationService {
     private readonly userRepository: UserRepository,
     private readonly authenticationTokenRepository: AuthenticationTokenRepository,
     private readonly userMapper: UserMapper,
+    private readonly jwtService: JwtService,
   ) {}
 
   async login(loginData: LoginDto): Promise<LoginModel> {
@@ -53,12 +56,11 @@ export class AuthenticationService {
     const json = await bfj.stringify(user);
     this.logger.debug(`User logged in: ${json}`);
 
-    // TODO access_token_expires_in cookie + id_token when login
     const loginModel: LoginModel = {
       accessToken: tokenModel.accessToken,
       accessTokenExpiresAt: tokenModel.accessTokenExpiryDate,
       refreshToken: tokenModel.refreshToken,
-      user,
+      idToken: this.generateIdToken(user),
     };
     return loginModel;
   }
@@ -89,12 +91,11 @@ export class AuthenticationService {
     const json = await bfj.stringify(user);
     this.logger.debug(`User refresh token: ${json}`);
 
-    // TODO access_token_expires_in cookie + id_token when login
     const loginModel: LoginModel = {
       accessToken: tokenModel.accessToken,
       accessTokenExpiresAt: tokenModel.accessTokenExpiryDate,
       refreshToken: tokenModel.refreshToken,
-      user,
+      idToken: this.generateIdToken(user),
     };
     return loginModel;
   }
@@ -132,6 +133,13 @@ export class AuthenticationService {
     return tokenModel;
   }
 
+  private generateIdToken(user: UserModel): string {
+    return this.jwtService.sign({ user }, {
+      expiresIn: appConfig.ID_TOKEN_EXPIRES_IN_AS_SECONDS,
+      issuer: 'myapp',
+    });
+  }
+
   private getAccessTokenExpiryDate(): Date {
     const now = moment().utc();
     return now.add(appConfig.ACCESS_TOKEN_EXPIRES_IN_AS_SECONDS, 'seconds').toDate();
@@ -139,6 +147,6 @@ export class AuthenticationService {
 
   private getRefreshTokenExpiryDate(): Date {
     const now = moment().utc();
-    return now.add(appConfig.REFRESH_TOKEN_EXPIRY_DURATION_IN_AS_SECONDS, 'seconds').toDate();
+    return now.add(appConfig.REFRESH_TOKEN_EXPIRES_IN_AS_SECONDS, 'seconds').toDate();
   }
 }

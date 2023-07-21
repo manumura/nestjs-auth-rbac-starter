@@ -3,6 +3,8 @@ token:
     expiresInAsSeconds: 3600
   refresh:
     expiresInAsSeconds: 86400
+  id:
+    expiresInAsSeconds: 86400
 
 bcrypt:
   saltRounds: 12

@@ -4,6 +4,7 @@ import config from 'config';
 const NODE_ENV = process.env.NODE_ENV;
 
 const COOKIE_SECRET = process.env.COOKIE_SECRET;
+const ID_TOKEN_SECRET = process.env.ID_TOKEN_SECRET;
 const CORS_ALLOWED_ORIGNS = process.env.CORS_ALLOWED_ORIGNS;
 const SERVER_PORT = process.env.SERVER_PORT;
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -16,7 +17,8 @@ const smtpSecureAsString = process.env.SMTP_SECURE;
 const SMTP_SECURE: boolean = smtpSecureAsString ? smtpSecureAsString.toLowerCase() === 'true' : true;
 
 const ACCESS_TOKEN_EXPIRES_IN_AS_SECONDS = config.get<number>('token.access.expiresInAsSeconds');
-const REFRESH_TOKEN_EXPIRY_DURATION_IN_AS_SECONDS = config.get<number>('token.refresh.expiresInAsSeconds');
+const REFRESH_TOKEN_EXPIRES_IN_AS_SECONDS = config.get<number>('token.refresh.expiresInAsSeconds');
+const ID_TOKEN_EXPIRES_IN_AS_SECONDS = config.get<number>('token.id.expiresInAsSeconds');
 
 const SALT_ROUNDS = config.get<number>('bcrypt.saltRounds');
 const RESET_PASSWORD_TOKEN_EXPIRY_DURATION_IN_HOURS = config.get<string>('resetPasswordToken.expiresInHours');
@@ -32,6 +34,7 @@ const MAIL_SENDER = config.get<string>('mail.sender');
 export const appConfig = {
   NODE_ENV,
   COOKIE_SECRET,
+  ID_TOKEN_SECRET,
   CORS_ALLOWED_ORIGNS,
   SERVER_PORT,
   DATABASE_URL,
@@ -41,7 +44,8 @@ export const appConfig = {
   SMTP_PASSWORD,
   SMTP_SECURE,
   ACCESS_TOKEN_EXPIRES_IN_AS_SECONDS: ACCESS_TOKEN_EXPIRES_IN_AS_SECONDS,
-  REFRESH_TOKEN_EXPIRY_DURATION_IN_AS_SECONDS: REFRESH_TOKEN_EXPIRY_DURATION_IN_AS_SECONDS,
+  REFRESH_TOKEN_EXPIRES_IN_AS_SECONDS: REFRESH_TOKEN_EXPIRES_IN_AS_SECONDS,
+  ID_TOKEN_EXPIRES_IN_AS_SECONDS,
   SALT_ROUNDS,
   RESET_PASSWORD_TOKEN_EXPIRY_DURATION_IN_HOURS: RESET_PASSWORD_TOKEN_EXPIRY_DURATION_IN_HOURS,
   LOG_LEVEL_CONSOLE,

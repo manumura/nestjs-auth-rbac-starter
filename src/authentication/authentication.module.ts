@@ -16,9 +16,12 @@ import { AuthenticationService } from './service/authentication.service';
 import { ResetPasswordService } from './service/reset.password.service';
 import { CustomStrategy } from './strategy/custom.strategy';
 import { IsResetPasswordTokenValidConstraint } from './validation/IsResetPasswordTokenValid';
+import { JwtModule } from '@nestjs/jwt';
+import { appConfig } from '../config/config';
 
 @Module({
   imports: [
+    JwtModule.register({ secret: appConfig.ID_TOKEN_SECRET }),
     PassportModule.register({ defaultStrategy: 'custom' }),
   ],
   controllers: [IndexController, AuthenticationController, ResetPasswordController],
