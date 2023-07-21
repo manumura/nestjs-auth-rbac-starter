@@ -16,6 +16,8 @@ import { LoginDto } from '../dto/login.dto';
 import { LoginModel } from '../model/login.model';
 import { TokenModel } from '../model/token.model';
 import { AuthenticationTokenRepository } from '../repository/authentication.token.repository';
+import moment from 'moment';
+import { appConfig } from '../../config/config';
 
 @Injectable()
 export class AuthenticationService {
@@ -51,8 +53,10 @@ export class AuthenticationService {
     const json = await bfj.stringify(user);
     this.logger.debug(`User logged in: ${json}`);
 
+    // TODO access_token_expires_in cookie + id_token when login
     const loginModel: LoginModel = {
       accessToken: tokenModel.accessToken,
+      accessTokenExpiresAt: tokenModel.accessTokenExpiryDate,
       refreshToken: tokenModel.refreshToken,
       user,
     };
@@ -85,8 +89,10 @@ export class AuthenticationService {
     const json = await bfj.stringify(user);
     this.logger.debug(`User refresh token: ${json}`);
 
+    // TODO access_token_expires_in cookie + id_token when login
     const loginModel: LoginModel = {
       accessToken: tokenModel.accessToken,
+      accessTokenExpiresAt: tokenModel.accessTokenExpiryDate,
       refreshToken: tokenModel.refreshToken,
       user,
     };
@@ -99,10 +105,15 @@ export class AuthenticationService {
     }
 
     const accessToken = nanoid();
+    const accessTokenExpiryDate = this.getAccessTokenExpiryDate();
     const refreshToken = nanoid();
+    const refreshokenExpiryDate = this.getRefreshTokenExpiryDate();
+
     const authenticationTokenEntityCreated = await this.authenticationTokenRepository.generate(
       accessToken,
+      accessTokenExpiryDate,
       refreshToken,
+      refreshokenExpiryDate,
       userEntity.id,
     );
     if (!authenticationTokenEntityCreated) {
@@ -115,8 +126,19 @@ export class AuthenticationService {
 
     const tokenModel: TokenModel = {
       accessToken,
+      accessTokenExpiryDate,
       refreshToken,
     };
     return tokenModel;
+  }
+
+  private getAccessTokenExpiryDate(): Date {
+    const now = moment().utc();
+    return now.add(appConfig.ACCESS_TOKEN_EXPIRES_IN_AS_SECONDS, 'seconds').toDate();
+  }
+
+  private getRefreshTokenExpiryDate(): Date {
+    const now = moment().utc();
+    return now.add(appConfig.REFRESH_TOKEN_EXPIRY_DURATION_IN_AS_SECONDS, 'seconds').toDate();
   }
 }

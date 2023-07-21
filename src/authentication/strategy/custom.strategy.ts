@@ -1,4 +1,4 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import moment from 'moment';
@@ -7,7 +7,6 @@ import { appConstants } from '../../app.constants';
 import { UserMapper } from '../../user/mapper/user.mapper';
 import { AuthenticationTokenRepository } from '../repository/authentication.token.repository';
 import extractToken from './token.utils';
-import { UserModel } from '../../user/model/user.model';
 
 @Injectable()
 export class CustomStrategy extends PassportStrategy(Strategy, 'custom') {

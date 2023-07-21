@@ -6,4 +6,7 @@ export class TokenModel {
 
   @ApiProperty()
   refreshToken: string;
+
+  @ApiProperty()
+  accessTokenExpiryDate: Date;
 }

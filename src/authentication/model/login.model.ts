@@ -10,4 +10,7 @@ export class LoginModel {
 
   @ApiProperty()
   user: UserModel;
+
+  @ApiProperty()
+  accessTokenExpiresAt: Date;
 }

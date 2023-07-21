@@ -3,7 +3,6 @@ import { AuthenticationToken } from '@prisma/client';
 import moment from 'moment';
 import { AuthenticationTokenWithUser } from '../../../prisma/custom-types';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { appConfig } from '../../config/config';
 import { encryptToSha256 } from '../../shared/util/crypto';
 
 @Injectable()
@@ -68,23 +67,31 @@ export class AuthenticationTokenRepository {
     return authToken;
   }
 
-  async generate(accessToken: string, refreshToken: string, userId: number): Promise<AuthenticationToken> {
+  async generate(
+    accessToken: string,
+    accessTokenExpiryDate: Date,
+    refreshToken: string,
+    refreshokenExpiryDate: Date,
+    userId: number,
+  ): Promise<AuthenticationToken> {
     // Transaction : remove existing token + create new token
     // https://github.com/prisma/prisma/issues/4072
     const authToken = await this.prisma.$transaction(async (tx) => {
       this.logger.debug('Begin transaction: remove existing token');
-      await tx.authenticationToken.delete({
-        where: {
-          userId,
-        },
-      }).catch(err => this.logger.error(err));
+      await tx.authenticationToken
+        .delete({
+          where: {
+            userId,
+          },
+        })
+        .catch((err) => this.logger.error(err));
 
       this.logger.debug('Create new token');
       const data = {
         accessToken: encryptToSha256(accessToken),
-        accessTokenExpireAt: this.getAccessTokenExpiryDate(),
+        accessTokenExpireAt: accessTokenExpiryDate,
         refreshToken: encryptToSha256(refreshToken),
-        refreshTokenExpireAt: this.getRefreshTokenExpiryDate(),
+        refreshTokenExpireAt: refreshokenExpiryDate,
         userId,
         createdAt: moment().utc().toDate(),
       };
@@ -97,15 +104,5 @@ export class AuthenticationTokenRepository {
     });
 
     return authToken;
-  }
-
-  private getAccessTokenExpiryDate(): Date {
-    const now = moment().utc();
-    return now.add(appConfig.ACCESS_TOKEN_EXPIRES_IN_AS_SECONDS, 'seconds').toDate();
-  }
-
-  private getRefreshTokenExpiryDate(): Date {
-    const now = moment().utc();
-    return now.add(appConfig.REFRESH_TOKEN_EXPIRY_DURATION_IN_AS_SECONDS, 'seconds').toDate();
   }
 }
