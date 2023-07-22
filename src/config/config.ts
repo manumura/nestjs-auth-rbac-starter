@@ -4,7 +4,7 @@ import config from 'config';
 const NODE_ENV = process.env.NODE_ENV;
 
 const COOKIE_SECRET = process.env.COOKIE_SECRET;
-const ID_TOKEN_SECRET = process.env.ID_TOKEN_SECRET;
+const ID_TOKEN_PRIVATE_KEY = process.env.ID_TOKEN_PRIVATE_KEY;
 const CORS_ALLOWED_ORIGNS = process.env.CORS_ALLOWED_ORIGNS;
 const SERVER_PORT = process.env.SERVER_PORT;
 const DATABASE_URL = process.env.DATABASE_URL;
@@ -34,7 +34,7 @@ const MAIL_SENDER = config.get<string>('mail.sender');
 export const appConfig = {
   NODE_ENV,
   COOKIE_SECRET,
-  ID_TOKEN_SECRET,
+  ID_TOKEN_PRIVATE_KEY,
   CORS_ALLOWED_ORIGNS,
   SERVER_PORT,
   DATABASE_URL,

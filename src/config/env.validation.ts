@@ -1,4 +1,4 @@
-import { cleanEnv, url, port, str, bool, num, host } from 'envalid';
+import { cleanEnv, port, str, bool, num } from 'envalid';
 
 import { appConfig } from './config';
 
@@ -6,7 +6,7 @@ export function validateEnv() {
   cleanEnv(appConfig, {
     NODE_ENV: str(),
     COOKIE_SECRET: str(),
-    ID_TOKEN_SECRET: str(),
+    ID_TOKEN_PRIVATE_KEY: str(),
     CORS_ALLOWED_ORIGNS: str(),
     SERVER_PORT: port(),
     DATABASE_URL: str(),

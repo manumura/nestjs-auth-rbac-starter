@@ -19,9 +19,18 @@ import { IsResetPasswordTokenValidConstraint } from './validation/IsResetPasswor
 import { JwtModule } from '@nestjs/jwt';
 import { appConfig } from '../config/config';
 
+console.log('appConfig',       appConfig.ID_TOKEN_PRIVATE_KEY);
+
 @Module({
   imports: [
-    JwtModule.register({ secret: appConfig.ID_TOKEN_SECRET }),
+    JwtModule.register({
+      // https://gist.github.com/ygotthilf/baa58da5c3dd1f69fae9
+      privateKey: appConfig.ID_TOKEN_PRIVATE_KEY, 
+      // publicKey: appConfig.ID_TOKEN_PUBLIC_KEY,
+      signOptions: {
+      algorithm: 'RS256',
+      issuer: 'myapp',
+    } }),
     PassportModule.register({ defaultStrategy: 'custom' }),
   ],
   controllers: [IndexController, AuthenticationController, ResetPasswordController],
