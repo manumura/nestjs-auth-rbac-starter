@@ -19,8 +19,6 @@ import { IsResetPasswordTokenValidConstraint } from './validation/IsResetPasswor
 import { JwtModule } from '@nestjs/jwt';
 import { appConfig } from '../config/config';
 
-console.log('appConfig',       appConfig.ID_TOKEN_PRIVATE_KEY);
-
 @Module({
   imports: [
     JwtModule.register({

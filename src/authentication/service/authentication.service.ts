@@ -133,7 +133,6 @@ export class AuthenticationService {
     return tokenModel;
   }
 
-  // TODO use private key
   private generateIdToken(user: UserModel): string {
     return this.jwtService.sign({ user }, {
       // subject: user.id,

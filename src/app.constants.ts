@@ -12,5 +12,5 @@ export const appConstants = {
   TEMPORARY_PASSWORD_EMAIL_TEMPLATE: 'temporary-password',
   ACCESS_TOKEN: 'accessToken',
   REFRESH_TOKEN: 'refreshToken',
-  USER: 'user',
+  ACCESS_TOKEN_EXPIRES_AT: 'accessTokenExpiresAt',
 };
