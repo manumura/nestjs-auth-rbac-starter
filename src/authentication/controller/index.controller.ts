@@ -7,10 +7,12 @@ import { appConfig } from '../../config/config';
 export class IndexController {
   private logger = new Logger('IndexController');
 
-  @Get('/index')
-  welcome(): string {
+  @Get('/v1/index')
+  welcome() {
     this.logger.verbose('index api');
-    return 'Welcome to NestJS starter ^^';
+    return {
+      message: 'Welcome to NestJS starter ^^',
+    };
   }
 
   @Get('/v1/info')
