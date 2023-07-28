@@ -39,6 +39,7 @@ export class AuthenticationController {
   })
   @ApiBadRequestResponse({ description: 'Validation failed' })
   register(@Body(ValidationPipe) registerDto: RegisterDto): Promise<UserModel> {
+    this.logger.log(`Register user with email ${registerDto.email}`);
     return this.userService.register(registerDto);
   }
 
@@ -47,6 +48,7 @@ export class AuthenticationController {
   @ApiOkResponse({ type: LoginModel })
   @ApiBadRequestResponse({ description: 'Validation failed' })
   async login(@Body(ValidationPipe) loginData: LoginDto, @Res({ passthrough: true }) response: FastifyReply): Promise<LoginModel> {
+    this.logger.log(`Login user with email ${loginData.email}`);
     const login = await this.authenticationService.login(loginData);
     setAuthCookies(response, login);
     return login;

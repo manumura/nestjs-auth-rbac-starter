@@ -19,6 +19,7 @@ export class ResetPasswordController {
   })
   @ApiBadRequestResponse({ description: 'Validation failed' })
   async forgotPassword(@Body(ValidationPipe) forgotPasswordDto: ForgotPasswordDto): Promise<MessageModel> {
+    this.logger.log(`Forgot password for user with email ${forgotPasswordDto.email}`);
     const resetPasswordTokenModel = await this.resetPasswordService.createToken(forgotPasswordDto);
     const message = resetPasswordTokenModel ? 'success' : 'failed';
     return {
@@ -29,6 +30,7 @@ export class ResetPasswordController {
   @Get('/v1/token/:token')
   @ApiOkResponse({ type: UserModel })
   findUserByToken(@Param('token') token: string): Promise<UserModel> {
+    this.logger.log(`Get user with token ${token}`);
     return this.resetPasswordService.findByValidToken(token);
   }
 
@@ -37,6 +39,7 @@ export class ResetPasswordController {
   @ApiOkResponse({ type: UserModel })
   @ApiBadRequestResponse({ description: 'Validation failed' })
   resetPassword(@Body(ValidationPipe) resetPasswordDto: ResetPasswordDto): Promise<UserModel> {
+    this.logger.log(`Reset password for user with token ${resetPasswordDto.token}`);
     return this.resetPasswordService.resetPassword(resetPasswordDto);
   }
 }

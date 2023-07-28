@@ -20,6 +20,7 @@ export class CustomStrategy extends PassportStrategy(Strategy, 'custom') {
   }
 
   async authenticate(request: Request): Promise<void> {
+    this.logger.log(`Checking authentication for request: ${request.url}`);
     const headers = request.headers;
     const cookies = request.cookies;
     const token = extractToken(cookies, headers, appConstants.ACCESS_TOKEN);

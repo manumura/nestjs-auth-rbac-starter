@@ -121,15 +121,15 @@ export class AuthenticationService {
       throw new InternalServerErrorException('Authentication tokens creation failed');
     }
 
-    this.logger.debug(
-      `Access token created for user ID ${userEntity.id}: ${JSON.stringify(authenticationTokenEntityCreated)}`,
-    );
-
     const tokenModel: TokenModel = {
       accessToken,
       accessTokenExpiryDate,
       refreshToken,
     };
+
+    this.logger.debug(
+      `Access token created for user ID ${userEntity.id}: ${JSON.stringify(tokenModel)}`,
+    );
     return tokenModel;
   }
 
@@ -142,7 +142,7 @@ export class AuthenticationService {
 
   private getAccessTokenExpiryDate(): Date {
     const now = moment().utc();
-    return now.add(appConfig.ACCESS_TOKEN_EXPIRES_IN_AS_SECONDS, 'seconds').toDate();
+    return now.add(5, 'seconds').toDate();
   }
 
   private getRefreshTokenExpiryDate(): Date {

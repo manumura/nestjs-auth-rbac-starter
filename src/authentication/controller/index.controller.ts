@@ -9,7 +9,7 @@ export class IndexController {
 
   @Get('/v1/index')
   welcome() {
-    this.logger.verbose('index api');
+    this.logger.log('Index API');
     return {
       message: 'Welcome to NestJS starter ^^',
     };
@@ -18,7 +18,7 @@ export class IndexController {
   @Get('/v1/info')
   info(@Req() req: Request, @RealIP() ip: string) {
     const userAgent = req.headers['user-agent'];
-    this.logger.verbose(`User agent detected: ${userAgent}`);
+    this.logger.log(`Info API, User agent detected: ${userAgent}`);
     return {
       env: appConfig.NODE_ENV,
       userAgent: userAgent,
@@ -28,7 +28,7 @@ export class IndexController {
 
   @Get('/v1/redirect')
   redirect(@Query('url') url: string, @Res() res: Response): void {
-    this.logger.verbose(`Redirect to URL: ${url}`);
+    this.logger.log(`Redirect to URL: ${url}`);
     return res.status(302).redirect(url);
   }
 }

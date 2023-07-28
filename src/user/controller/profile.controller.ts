@@ -25,6 +25,7 @@ export class ProfileController {
   @ApiForbiddenResponse()
   @ApiOkResponse({ type: UserModel })
   getProfile(@GetUser() user: UserModel): UserModel {
+    this.logger.log(`Get profile for user with email ${user.email}`);
     return user;
   }
 
@@ -39,6 +40,7 @@ export class ProfileController {
     @Body(ValidationPipe) updateProfileDto: UpdateProfileDto,
     @GetUser() user: UserModel,
   ): Promise<UserModel> {
+    this.logger.log(`Update profile for user with email ${user.email}`);
     if (!user.id) {
       throw new BadRequestException('User ID is required');
     }

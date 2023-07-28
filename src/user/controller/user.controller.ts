@@ -44,6 +44,7 @@ export class UserController {
   })
   @ApiBadRequestResponse({ description: 'Validation failed' })
   createUser(@Body(ValidationPipe) userData: CreateUserDto): Promise<UserModel> {
+    this.logger.log(`Create user with email ${userData.email}`);
     return this.userService.createUser(userData);
   }
 
@@ -55,6 +56,7 @@ export class UserController {
   @ApiForbiddenResponse()
   @ApiOkResponse({ type: UserPageModel })
   findUsers(@Query(ValidationPipe) getUsersDto: GetUsersDto): Promise<PageModel<UserModel>> {
+    this.logger.log(`Get users with filter ${JSON.stringify(getUsersDto)}`);
     return this.userService.findAll(getUsersDto);
   }
 
@@ -66,6 +68,7 @@ export class UserController {
   @ApiForbiddenResponse()
   @ApiOkResponse({ type: UserModel })
   findUserById(@Param('id', ParseIntPipe) id: number): Promise<UserModel> {
+    this.logger.log(`Get user with ID ${id}`);
     return this.userService.findById(id);
   }
 
@@ -80,6 +83,7 @@ export class UserController {
     @Param('id', ParseIntPipe) id: number,
     @Body(ValidationPipe) updateUserDto: UpdateUserDto,
   ): Promise<UserModel> {
+    this.logger.log(`Update user with ID ${id}`);
     return this.userService.updateUserById(id, updateUserDto);
   }
 
@@ -91,6 +95,7 @@ export class UserController {
   @ApiForbiddenResponse()
   @ApiOkResponse({ type: UserModel })
   deleteUserById(@Param('id', ParseIntPipe) id: number): Promise<UserModel> {
+    this.logger.log(`Delete user with ID ${id}`);
     return this.userService.deleteById(id);
   }
 }
