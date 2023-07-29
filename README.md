@@ -29,7 +29,11 @@
 ## Installation
 
 ```bash
+# install dependencies
 $ npm install
+
+# init prisma
+$ npx prisma migrate dev --name init
 ```
 
 ## Running the app
@@ -65,11 +69,11 @@ $ npm run test:cov
 docker build -t manumura/nestjs-auth-rbac-starter .
 
 # run docker container
-# (use databse config: DATABASE_URL=mysql://<user>:<password>@host.docker.internal:3306/<db-name>)
+# (use databse config: DATABASE_URL=postgresql://<user>:<password>@host.docker.internal:5432/<db-name>)
 docker run -it --rm -p 9002:9002 --name nestjs-auth-rbac-starter --env-file=.env manumura/nestjs-auth-rbac-starter
 
 # run docker container with docker compose
-# (use databse config: DATABASE_URL=mysql://<user>:<password>@mysql:3306/<db-name>)
+# (use databse config: DATABASE_URL=postgresql://<user>:<password>@postgres:5432/<db-name>)
 docker compose up
 ```
 

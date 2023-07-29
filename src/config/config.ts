@@ -4,7 +4,8 @@ import config from 'config';
 const NODE_ENV = process.env.NODE_ENV;
 
 const COOKIE_SECRET = process.env.COOKIE_SECRET;
-const ID_TOKEN_PRIVATE_KEY = process.env.ID_TOKEN_PRIVATE_KEY;
+const ID_TOKEN_PRIVATE_KEY_AS_BASE64 = process.env.ID_TOKEN_PRIVATE_KEY_AS_BASE64 as string;
+const ID_TOKEN_PRIVATE_KEY = Buffer.from(ID_TOKEN_PRIVATE_KEY_AS_BASE64, 'base64').toString('utf8');
 const CORS_ALLOWED_ORIGNS = process.env.CORS_ALLOWED_ORIGNS;
 const SERVER_PORT = process.env.SERVER_PORT;
 const DATABASE_URL = process.env.DATABASE_URL;

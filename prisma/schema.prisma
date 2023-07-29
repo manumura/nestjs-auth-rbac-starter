@@ -3,17 +3,17 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model AuthenticationToken {
   userId               Int      @id @unique(map: "REL_authentication_token_user_id") @map("user_id")
   accessToken          String   @unique(map: "IDX_authentication_token_access_token") @map("access_token") @db.VarChar(255)
-  accessTokenExpireAt  DateTime @map("access_token_expire_at") @db.DateTime(0)
+  accessTokenExpireAt  DateTime @map("access_token_expire_at") @db.Timestamp(0)
   refreshToken         String   @unique(map: "IDX_authentication_token_refresh_token") @map("refresh_token") @db.VarChar(255)
-  refreshTokenExpireAt DateTime @map("refresh_token_expire_at") @db.DateTime(0)
-  createdAt            DateTime @map("created_at") @db.DateTime(0)
+  refreshTokenExpireAt DateTime @map("refresh_token_expire_at") @db.Timestamp(0)
+  createdAt            DateTime @map("created_at") @db.Timestamp(0)
   user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "FK_authentication_token_user_id_user_id")
 
   @@map("authentication_token")
@@ -22,9 +22,9 @@ model AuthenticationToken {
 model ResetPasswordToken {
   userId    Int       @id @unique(map: "REL_reset_password_token_user_id") @map("user_id")
   token     String    @unique(map: "IDX_reset_password_token_token") @db.VarChar(50)
-  expiredAt DateTime  @map("expired_at") @db.DateTime(0)
-  createdAt DateTime  @map("created_at") @db.DateTime(0)
-  updatedAt DateTime? @map("updated_at") @db.DateTime(0)
+  expiredAt DateTime  @map("expired_at") @db.Timestamp(0)
+  createdAt DateTime  @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime? @map("updated_at") @db.Timestamp(0)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "FK_reset_password_token_user_id_user_id")
 
   @@map("reset_password_token")
@@ -44,14 +44,15 @@ model User {
   password            String               @db.VarChar(255)
   email               String               @unique(map: "IDX_user_email") @db.VarChar(255)
   name                String?              @map("name") @db.VarChar(100)
-  isActive            Boolean              @map("is_active") @db.TinyInt
-  createdAt           DateTime             @map("created_at") @db.DateTime(0)
-  updatedAt           DateTime?            @map("updated_at") @db.DateTime(0)
+  isActive            Boolean              @map("is_active") @db.Boolean
+  createdAt           DateTime             @map("created_at") @db.Timestamp(0)
+  updatedAt           DateTime?            @map("updated_at") @db.Timestamp(0)
   roleId              Int                  @map("role_id")
   authenticationToken AuthenticationToken?
   resetPasswordToken  ResetPasswordToken?
   role                Role                 @relation(fields: [roleId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "FK_user_role_id_role_id")
 
-  @@index([roleId], map: "FK_user_role_id_role_id")
+// TODO master + schema.sql
+  @@index([roleId], map: "AK_user_role_id")
   @@map("user")
 }
