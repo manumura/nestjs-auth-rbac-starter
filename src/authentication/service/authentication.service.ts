@@ -142,7 +142,7 @@ export class AuthenticationService {
 
   private getAccessTokenExpiryDate(): Date {
     const now = moment().utc();
-    return now.add(5, 'seconds').toDate();
+    return now.add(appConfig.ACCESS_TOKEN_EXPIRES_IN_AS_SECONDS, 'seconds').toDate();
   }
 
   private getRefreshTokenExpiryDate(): Date {
