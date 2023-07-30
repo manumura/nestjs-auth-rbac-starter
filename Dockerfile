@@ -35,4 +35,10 @@ COPY --chown=node:node --from=build /usr/src/app/dist ./dist
 COPY --chown=node:node --from=build /usr/src/app/config ./config
 COPY --chown=node:node --from=build /usr/src/app/templates ./templates
 
-CMD [ "node", "dist/src/main.js" ]
+COPY --chown=node:node --from=build /usr/src/app/prisma/schema.prisma ./prisma/schema.prisma
+COPY --chown=node:node --from=build /usr/src/app/prisma/migrations ./prisma/migrations
+COPY --chown=node:node startup.sh ./
+RUN chmod +x ./startup.sh
+
+# CMD [ "node", "dist/src/main.js" ]
+CMD ["sh", "startup.sh"]

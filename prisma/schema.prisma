@@ -52,7 +52,6 @@ model User {
   resetPasswordToken  ResetPasswordToken?
   role                Role                 @relation(fields: [roleId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "FK_user_role_id_role_id")
 
-// TODO master + schema.sql
   @@index([roleId], map: "AK_user_role_id")
   @@map("user")
 }
