@@ -1,52 +1,56 @@
-DROP TABLE IF EXISTS `reset_password_token`;
-DROP TABLE IF EXISTS `user`;
-DROP TABLE IF EXISTS `role`;
+DROP TABLE IF EXISTS public."reset_password_token";
+DROP TABLE IF EXISTS public."authentication_token";
+DROP TABLE IF EXISTS public."user";
+DROP TABLE IF EXISTS public."role";
 
-CREATE TABLE `role` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `description` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `IDX_role_name` (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE public."role" (
+	"id" serial4 NOT NULL,
+	"name" varchar(255) NOT NULL,
+	"description" varchar(255) NOT NULL,
+	CONSTRAINT "role_pkey" PRIMARY KEY (id)
+);
+CREATE UNIQUE INDEX "IDX_role_name" ON public.role (name);
 
-CREATE TABLE `user` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `name` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `is_active` tinyint(4) NOT NULL,
-  `created_at` datetime NOT NULL,
-  `updated_at` datetime DEFAULT NULL,
-  `role_id` int(11) NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `IDX_user_email` (`email`),
-  KEY `FK_user_role_id_role_id` (`role_id`),
-  CONSTRAINT `FK_user_role_id_role_id` FOREIGN KEY (`role_id`) REFERENCES `role` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE public."user" (
+	"id" serial4 NOT NULL,
+	"password" varchar(255) NOT NULL,
+	"email" varchar(255) NOT NULL,
+	"name" varchar(100) NULL,
+	"is_active" bool NOT NULL,
+	"created_at" timestamp(0) NOT NULL,
+	"updated_at" timestamp(0) NULL,
+	"role_id" int4 NOT NULL,
+	CONSTRAINT "user_pkey" PRIMARY KEY (id)
+);
+CREATE INDEX "AK_user_role_id" ON public."user" USING btree (role_id);
+CREATE UNIQUE INDEX "IDX_user_email" ON public."user" USING btree (email);
 
-CREATE TABLE `authentication_token` (
-  `access_token` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `access_token_expire_at` datetime NOT NULL,
-  `refresh_token` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `refresh_token_expire_at` datetime NOT NULL,
-  `created_at` datetime NOT NULL,
-  `user_id` int(11) NOT NULL,
-  PRIMARY KEY (`user_id`),
-  UNIQUE KEY `IDX_authentication_token_access_token` (`access_token`),
-  UNIQUE KEY `IDX_authentication_token_refresh_token` (`refresh_token`),
-  UNIQUE KEY `REL_authentication_token_user_id` (`user_id`),
-  CONSTRAINT `FK_authentication_token_user_id_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ALTER TABLE public."user" ADD CONSTRAINT "FK_user_role_id_role_id" FOREIGN KEY (role_id) REFERENCES public."role"(id) ON DELETE SET NULL ON UPDATE CASCADE;
 
-CREATE TABLE `reset_password_token` (
-  `token` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `expired_at` datetime NOT NULL,
-  `created_at` datetime NOT NULL,
-  `updated_at` datetime DEFAULT NULL,
-  `user_id` int(11) NOT NULL,
-  PRIMARY KEY (`user_id`),
-  UNIQUE KEY `IDX_reset_password_token_token` (`token`),
-  UNIQUE KEY `REL_reset_password_token_user_id` (`user_id`),
-  CONSTRAINT `FK_reset_password_token_user_id_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE public."authentication_token" (
+	"user_id" int4 NOT NULL,
+	"access_token" varchar(255) NOT NULL,
+	"access_token_expire_at" timestamp(0) NOT NULL,
+	"refresh_token" varchar(255) NOT NULL,
+	"refresh_token_expire_at" timestamp(0) NOT NULL,
+	"created_at" timestamp(0) NOT NULL,
+	CONSTRAINT "authentication_token_pkey" PRIMARY KEY (user_id)
+);
+CREATE UNIQUE INDEX "IDX_authentication_token_access_token" ON public.authentication_token (access_token);
+CREATE UNIQUE INDEX "IDX_authentication_token_refresh_token" ON public.authentication_token (refresh_token);
+CREATE UNIQUE INDEX "REL_authentication_token_user_id" ON public.authentication_token (user_id);
+
+ALTER TABLE public."authentication_token" ADD CONSTRAINT "FK_authentication_token_user_id_user_id" FOREIGN KEY (user_id) REFERENCES public."user"(id) ON DELETE CASCADE ON UPDATE CASCADE;
+
+CREATE TABLE public."reset_password_token" (
+	"user_id" int4 NOT NULL,
+	"token" varchar(50) NOT NULL,
+	"expired_at" timestamp(0) NOT NULL,
+	"created_at" timestamp(0) NOT NULL,
+	"updated_at" timestamp(0) NULL,
+	CONSTRAINT "reset_password_token_pkey" PRIMARY KEY (user_id)
+);
+CREATE UNIQUE INDEX "IDX_reset_password_token_token" ON public.reset_password_token (token);
+CREATE UNIQUE INDEX "REL_reset_password_token_user_id" ON public.reset_password_token (user_id);
+
+ALTER TABLE public."reset_password_token" ADD CONSTRAINT "FK_reset_password_token_user_id_user_id" FOREIGN KEY (user_id) REFERENCES public."user"(id) ON DELETE CASCADE ON UPDATE CASCADE;
