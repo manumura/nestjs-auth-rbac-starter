@@ -15,7 +15,10 @@ import { loggerOptions } from './config/logger.config';
 import { HttpExceptionFilter } from './shared/filter/http-exception-filter';
 import { UserModule } from './user/user.module';
 
-// TODO image upload update profile https://medium.com/@maksim_smagin/software-architecture-101-how-to-upload-file-s3-nodejs-fastify-68fceb5c5133
+// TODO image upload update profile 
+// https://cloudinary.com/documentation/upload_images#chunked_asset_upload
+// https://support.cloudinary.com/hc/en-us/articles/208263735-Guidelines-for-implementing-chunked-upload-to-Cloudinary
+// https://medium.com/@maksim_smagin/software-architecture-101-how-to-upload-file-s3-nodejs-fastify-68fceb5c5133
 // TODO session in redis https://blog.logrocket.com/add-redis-cache-nestjs-app/
 async function bootstrap() {
   const logger = new Logger('bootstrap');
