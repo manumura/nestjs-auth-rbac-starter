@@ -88,7 +88,7 @@ export class UserRepository {
   }
 
   async updateById(id: number, updateUserEntityDto: UpdateUserEntityDto): Promise<UserWithRole> {
-    const { email, password, name, isActive, roleId } = updateUserEntityDto;
+    const { email, password, name, isActive, imageId, imageUrl, roleId } = updateUserEntityDto;
     const hashedPassword = password ? await this.generateHashedPassword(password) : undefined;
     const userEntityToUpdate: Prisma.UserUpdateInput = {
       ...(email ? { email } : {}),
@@ -98,6 +98,8 @@ export class UserRepository {
       ...(isActive !== undefined && isActive !== null
         ? { isActive: isActive.toString().toLowerCase() === 'true' }
         : {}),
+      ...(imageId ? { imageId } : {}),
+      ...(imageUrl ? { imageUrl } : {}),
       updatedAt: moment().utc().toDate(),
     };
 

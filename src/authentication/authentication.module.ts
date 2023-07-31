@@ -18,6 +18,7 @@ import { CustomStrategy } from './strategy/custom.strategy';
 import { IsResetPasswordTokenValidConstraint } from './validation/IsResetPasswordTokenValid';
 import { JwtModule } from '@nestjs/jwt';
 import { appConfig } from '../config/config';
+import { StorageService } from '../storage/storage.service';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { appConfig } from '../config/config';
     ResetPasswordService,
     UserService,
     EmailService,
+    StorageService,
     ResetPasswordTokenMapper,
     UserMapper,
     IsResetPasswordTokenValidConstraint,

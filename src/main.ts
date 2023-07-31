@@ -1,12 +1,12 @@
 import fastifyCookie from '@fastify/cookie';
 import helmet from '@fastify/helmet';
+import multipart from '@fastify/multipart';
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { useContainer } from 'class-validator';
-import { WinstonModule, WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-import { PrismaService } from '../prisma/prisma.service';
+import { WINSTON_MODULE_NEST_PROVIDER, WinstonModule } from 'nest-winston';
 import { AppModule } from './app.module';
 import { AuthenticationModule } from './authentication/authentication.module';
 import { appConfig } from './config/config';
@@ -15,10 +15,6 @@ import { loggerOptions } from './config/logger.config';
 import { HttpExceptionFilter } from './shared/filter/http-exception-filter';
 import { UserModule } from './user/user.module';
 
-// TODO image upload update profile 
-// https://cloudinary.com/documentation/upload_images#chunked_asset_upload
-// https://support.cloudinary.com/hc/en-us/articles/208263735-Guidelines-for-implementing-chunked-upload-to-Cloudinary
-// https://medium.com/@maksim_smagin/software-architecture-101-how-to-upload-file-s3-nodejs-fastify-68fceb5c5133
 // TODO session in redis https://blog.logrocket.com/add-redis-cache-nestjs-app/
 async function bootstrap() {
   const logger = new Logger('bootstrap');
@@ -31,6 +27,19 @@ async function bootstrap() {
   validateEnv();
 
   await app.register(helmet);
+  // Fastify file upload
+  const options = { 
+    limits: { 
+      fieldNameSize: 100, // Max field name size in bytes
+      fieldSize: 1000000, // Max field value size in bytes
+      fields: 10, // Max number of non-file fields
+      fileSize: 100000000, // For multipart forms, the max file size
+      files: 1, // Max number of file fields
+      headerPairs: 2000, // Max number of header key=>value pairs
+    } 
+  };
+  await app.register(multipart, options);
+  // await app.register(multipart);
 
   app.enableCors({
     origin: appConfig.CORS_ALLOWED_ORIGNS,

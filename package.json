@@ -36,6 +36,7 @@
     "bfj": "^7.0.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
+    "cloudinary": "^1.40.0",
     "config": "^3.3.9",
     "dotenv": "^16.3.1",
     "envalid": "^7.3.1",

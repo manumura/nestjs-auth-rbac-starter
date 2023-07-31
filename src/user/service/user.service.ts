@@ -1,11 +1,14 @@
-import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { MultipartFile } from '@fastify/multipart';
+import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
-import { validate, ValidationError } from 'class-validator';
+import { ValidationError, validate } from 'class-validator';
 import { v4 as uuidv4 } from 'uuid';
 import { UserWithRole } from '../../../prisma/custom-types';
 import { EmailService } from '../../notification/email.service';
 import { PageModel } from '../../shared/model/page.model';
+import { FileDto } from '../../storage/file.dto';
+import { StorageService } from '../../storage/storage.service';
 import { CreateUserDto } from '../dto/create.user.dto';
 import { FilterUserDto } from '../dto/filter.user.dto';
 import { FilterUsersDto } from '../dto/filter.users.dto';
@@ -26,6 +29,7 @@ export class UserService {
 
   constructor(
     private readonly emailService: EmailService,
+    private readonly storageService: StorageService,
     private readonly userRepository: UserRepository,
     private readonly roleRepository: RoleRepository,
     private readonly userMapper: UserMapper,
@@ -171,6 +175,53 @@ export class UserService {
     const user = this.userMapper.entityToModel(updatedUserEntity);
     this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
 
+    return user;
+  }
+
+  async updateImageById(userId: number, file: MultipartFile): Promise<UserModel> {
+    this.logger.debug('Update user image by ID');
+
+    if (!userId) {
+      throw new BadRequestException('User ID undefined');
+    }
+
+    const saveResponse = await this.storageService.saveImageToLocalPath(file);
+    if (!saveResponse) {
+      throw new InternalServerErrorException('Error while saving file');
+    }
+
+    this.logger.verbose(`Uploading file: ${saveResponse.filename}`);
+    const uploadResponse = await this.storageService.uploadProfileImage(saveResponse.filepath, userId);
+    this.logger.verbose(`Upload result: ${JSON.stringify(uploadResponse)}`);
+    this.storageService.deleteFromLocalPath(saveResponse.filepath);
+
+    if (!uploadResponse || !uploadResponse.public_id || !uploadResponse.secure_url) {
+      throw new BadRequestException('Image ID or image URL undefined');
+    }
+
+    this.logger.debug(`Find user by ID: ${userId}`);
+    const filterById: FilterUserDto = {
+      id: userId,
+    };
+    const userEntity = await this.userRepository.findOne(filterById);
+    this.logger.debug(`User found: ${JSON.stringify(userEntity)}`);
+    if (!userEntity) {
+      throw new NotFoundException(`User not found with ID: ${userId}`);
+    }
+
+    // Delete previous image
+    if (userEntity.imageId) {
+      await this.storageService.delete(userEntity.imageId);
+    }
+
+    const updateUserDto: UpdateUserEntityDto = {
+      imageId: uploadResponse.public_id,
+      imageUrl: uploadResponse.secure_url,
+    };
+
+    const updatedUserEntity = await this.userRepository.updateById(userId, updateUserDto);
+    const user = this.userMapper.entityToModel(updatedUserEntity);
+    this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
     return user;
   }
 

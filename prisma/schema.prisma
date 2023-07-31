@@ -45,6 +45,8 @@ model User {
   email               String               @unique(map: "IDX_user_email") @db.VarChar(255)
   name                String?              @map("name") @db.VarChar(100)
   isActive            Boolean              @map("is_active") @db.Boolean
+  imageId             String?              @map("image_id") @db.VarChar(255)
+  imageUrl            String?              @map("image_url") @db.VarChar(255)
   createdAt           DateTime             @map("created_at") @db.Timestamp(0)
   updatedAt           DateTime?            @map("updated_at") @db.Timestamp(0)
   roleId              Int                  @map("role_id")

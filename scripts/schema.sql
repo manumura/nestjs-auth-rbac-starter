@@ -17,6 +17,8 @@ CREATE TABLE public."user" (
 	"email" varchar(255) NOT NULL,
 	"name" varchar(100) NULL,
 	"is_active" bool NOT NULL,
+	"image_id" varchar(255) NULL,
+  	"image_url" varchar(255) NULL,
 	"created_at" timestamp(0) NOT NULL,
 	"updated_at" timestamp(0) NULL,
 	"role_id" int4 NOT NULL,

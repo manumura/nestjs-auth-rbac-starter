@@ -15,4 +15,10 @@ export class UpdateUserEntityDto {
 
   @IsPositive()
   roleId?: number;
+
+  @IsString()
+  imageId?: string;
+
+  @IsString()
+  imageUrl?: string;
 }

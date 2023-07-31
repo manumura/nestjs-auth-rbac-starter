@@ -24,6 +24,14 @@ export class UserModel {
   public isActive: boolean;
 
   @Expose()
+  @ApiProperty()
+  public imageId: string;
+
+  @Expose()
+  @ApiProperty()
+  public imageUrl: string;
+
+  @Expose()
   @ApiProperty({ enum: Role })
   role: Role;
 

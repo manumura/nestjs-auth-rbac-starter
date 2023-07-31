@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { PrismaService } from '../../prisma/prisma.service';
 import { EmailService } from '../notification/email.service';
+import { StorageService } from '../storage/storage.service';
 import { ProfileController } from './controller/profile.controller';
 import { UserController } from './controller/user.controller';
 import { UserMapper } from './mapper/user.mapper';
@@ -19,6 +20,7 @@ import { IsUserEmailAlreadyExistConstraint } from './validation/IsUserEmailAlrea
     PrismaService,
     UserService,
     EmailService,
+    StorageService,
     UserMapper,
     IsUserEmailAlreadyExistConstraint,
     UserRepository,
