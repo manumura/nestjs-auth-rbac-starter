@@ -137,7 +137,7 @@ export class UserService {
       email,
     };
     const userEntityFound = await this.userRepository.findOne(filterByEmail);
-    this.logger.debug(`User email already exists: ${JSON.stringify(userEntityFound)}`);
+    this.logger.debug(`User with email already exists: ${JSON.stringify(userEntityFound)}`);
 
     if (userEntityFound) {
       throw new ConflictException('Cannot create user');
@@ -246,7 +246,7 @@ export class UserService {
       const isUserEmailAlreadyExists = await this.userRepository.isUserEmailAlreadyExists(email, userId);
       this.logger.debug(`User found with email ${email}: ${isUserEmailAlreadyExists}`);
       if (isUserEmailAlreadyExists) {
-        throw new BadRequestException(`User email ${email} already exists`);
+        throw new BadRequestException(`User with email ${email} already exists`);
       }
     }
 

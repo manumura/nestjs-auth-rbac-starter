@@ -5,7 +5,7 @@ import { IsUserEmailAlreadyExist } from '../validation/IsUserEmailAlreadyExist';
 export class CreateUserDto {
   @IsEmail()
   @IsUserEmailAlreadyExist({
-    message: 'User email $value already exists',
+    message: 'User with email $value already exists',
   })
   public email: string;
 

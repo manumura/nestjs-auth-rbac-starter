@@ -259,7 +259,7 @@ export class UserRepository {
 
   async isUserEmailAlreadyExists(email: string, id?: number): Promise<boolean> {
     if (!email) {
-      this.logger.error('User email are required');
+      this.logger.error('Email is required');
       return false;
     }
 
