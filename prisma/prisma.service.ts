@@ -1,10 +1,10 @@
-import { INestApplication, Injectable, OnModuleInit } from '@nestjs/common';
+import { INestApplication, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { Logger } from '@nestjs/common/services';
 import { PrismaClient } from '@prisma/client';
 import { PrismaClientOptions } from '@prisma/client/runtime/library';
 
 @Injectable()
-export class PrismaService extends PrismaClient<PrismaClientOptions, 'query' | 'error'> implements OnModuleInit {
+export class PrismaService extends PrismaClient<PrismaClientOptions, 'query' | 'error'> implements OnModuleInit, OnModuleDestroy {
   private logger = new Logger('PrismaService');
 
   constructor() {
@@ -30,7 +30,7 @@ export class PrismaService extends PrismaClient<PrismaClientOptions, 'query' | '
     });
   }
 
-  async onModuleInit() {
+  async onModuleInit(): Promise<void> {
     try {
       await this.$connect();
       // this.$on('query', (event) => {
@@ -43,6 +43,11 @@ export class PrismaService extends PrismaClient<PrismaClientOptions, 'query' | '
     } catch (error) {
       this.logger.error(error);
     }
+  }
+
+  async onModuleDestroy(): Promise<void> {
+    await this.$disconnect();
+    this.logger.verbose('Prisma disconnected');
   }
 
   // async enableShutdownHooks(app: INestApplication) {
