@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model AuthenticationToken {
@@ -41,6 +42,7 @@ model Role {
 
 model User {
   id                  Int                  @id @default(autoincrement())
+  uuid                String               @unique(map: "IDX_user_uuid") @db.Uuid @default(dbgenerated("gen_random_uuid()"))
   password            String               @db.VarChar(255)
   email               String               @unique(map: "IDX_user_email") @db.VarChar(255)
   name                String?              @map("name") @db.VarChar(100)

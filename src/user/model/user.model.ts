@@ -11,6 +11,10 @@ export class UserModel {
 
   @Expose()
   @ApiProperty()
+  public readonly uuid: string;
+
+  @Expose()
+  @ApiProperty()
   public email: string;
 
   public password: string;

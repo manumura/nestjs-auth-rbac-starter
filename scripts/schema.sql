@@ -13,12 +13,13 @@ CREATE UNIQUE INDEX "IDX_role_name" ON public.role (name);
 
 CREATE TABLE public."user" (
 	"id" serial4 NOT NULL,
+	"uuid" uuid NOT NULL DEFAULT gen_random_uuid(),
 	"password" varchar(255) NOT NULL,
 	"email" varchar(255) NOT NULL,
 	"name" varchar(100) NULL,
 	"is_active" bool NOT NULL,
 	"image_id" varchar(255) NULL,
-  	"image_url" varchar(255) NULL,
+	"image_url" varchar(255) NULL,
 	"created_at" timestamp(0) NOT NULL,
 	"updated_at" timestamp(0) NULL,
 	"role_id" int4 NOT NULL,
@@ -26,6 +27,7 @@ CREATE TABLE public."user" (
 );
 CREATE INDEX "AK_user_role_id" ON public."user" USING btree (role_id);
 CREATE UNIQUE INDEX "IDX_user_email" ON public."user" USING btree (email);
+CREATE UNIQUE INDEX "IDX_user_uuid" ON public."user" USING btree (uuid);
 
 ALTER TABLE public."user" ADD CONSTRAINT "FK_user_role_id_role_id" FOREIGN KEY (role_id) REFERENCES public."role"(id) ON DELETE SET NULL ON UPDATE CASCADE;
 

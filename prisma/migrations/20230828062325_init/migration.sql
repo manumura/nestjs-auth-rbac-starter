@@ -33,6 +33,7 @@ CREATE TABLE "role" (
 -- CreateTable
 CREATE TABLE "user" (
     "id" SERIAL NOT NULL,
+    "uuid" UUID NOT NULL DEFAULT gen_random_uuid(),
     "password" VARCHAR(255) NOT NULL,
     "email" VARCHAR(255) NOT NULL,
     "name" VARCHAR(100),
@@ -63,6 +64,9 @@ CREATE UNIQUE INDEX "IDX_reset_password_token_token" ON "reset_password_token"("
 
 -- CreateIndex
 CREATE UNIQUE INDEX "IDX_role_name" ON "role"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "IDX_user_uuid" ON "user"("uuid");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "IDX_user_email" ON "user"("email");
