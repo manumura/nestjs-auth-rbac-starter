@@ -22,6 +22,7 @@ import { Role as RoleEnum } from '../model/role.model';
 import { UserModel } from '../model/user.model';
 import { RoleRepository } from '../repository/role.repository';
 import { UserRepository } from '../repository/user.repository';
+import { UUID } from 'crypto';
 
 @Injectable()
 export class UserService {
@@ -45,17 +46,17 @@ export class UserService {
     return modelsPageable;
   }
 
-  async findById(id: number): Promise<UserModel> {
-    if (!id) {
-      throw new BadRequestException('ID cannot be undefined');
+  async findByUuid(uuid: UUID): Promise<UserModel> {
+    if (!uuid) {
+      throw new BadRequestException('UUID cannot be undefined');
     }
 
-    const filterById: FilterUserDto = {
-      id,
+    const filterByUuid: FilterUserDto = {
+      uuid,
     };
-    const entity = await this.userRepository.findOne(filterById);
+    const entity = await this.userRepository.findOne(filterByUuid);
     if (!entity) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      throw new NotFoundException(`User with UUID ${uuid} not found`);
     }
     const user = this.userMapper.entityToModel(entity);
     this.logger.debug(`User found: ${JSON.stringify(user)}`);
@@ -225,25 +226,25 @@ export class UserService {
     return user;
   }
 
-  async updateUserById(userId: number, updateUserDto: UpdateUserDto): Promise<UserModel> {
-    this.logger.debug('Update user by ID');
+  async updateUserByUuid(userUuid: UUID, updateUserDto: UpdateUserDto): Promise<UserModel> {
+    this.logger.debug('Update user by UUID');
     const { email, password, name, active, role } = updateUserDto;
-    if (!userId) {
-      throw new BadRequestException('User ID undefined');
+    if (!userUuid) {
+      throw new BadRequestException('User UUID undefined');
     }
 
-    this.logger.debug(`Find user by ID: ${userId}`);
-    const filterById: FilterUserDto = {
-      id: userId,
+    this.logger.debug(`Find user by UUID: ${userUuid}`);
+    const filterByUuid: FilterUserDto = {
+      uuid: userUuid,
     };
-    const userEntity = await this.userRepository.findOne(filterById);
+    const userEntity = await this.userRepository.findOne(filterByUuid);
     this.logger.debug(`User found: ${JSON.stringify(userEntity)}`);
     if (!userEntity) {
-      throw new NotFoundException(`User not found with ID: ${userId}`);
+      throw new NotFoundException(`User not found with UUID: ${userUuid}`);
     }
 
     if (email) {
-      const isUserEmailAlreadyExists = await this.userRepository.isUserEmailAlreadyExists(email, userId);
+      const isUserEmailAlreadyExists = await this.userRepository.isUserEmailAlreadyExists(email, userEntity.id);
       this.logger.debug(`User found with email ${email}: ${isUserEmailAlreadyExists}`);
       if (isUserEmailAlreadyExists) {
         throw new BadRequestException(`User with email ${email} already exists`);
@@ -265,29 +266,29 @@ export class UserService {
       updateUserEntityDto.roleId = roleEntity.id;
     }
 
-    const updatedUserEntity = await this.userRepository.updateById(userId, updateUserEntityDto);
+    const updatedUserEntity = await this.userRepository.updateById(userEntity.id, updateUserEntityDto);
     const user = this.userMapper.entityToModel(updatedUserEntity);
     this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
     return user;
   }
 
-  async deleteById(userId: number): Promise<UserModel> {
-    this.logger.debug('Delete user by ID');
-    if (!userId) {
-      throw new BadRequestException('User ID undefined');
+  async deleteById(userUuid: UUID): Promise<UserModel> {
+    this.logger.debug('Delete user by UUID');
+    if (!userUuid) {
+      throw new BadRequestException('User UUID undefined');
     }
 
-    this.logger.debug(`Find user by ID: ${userId}`);
-    const filterById: FilterUserDto = {
-      id: userId,
+    this.logger.debug(`Find user by UUID: ${userUuid}`);
+    const filterByUuid: FilterUserDto = {
+      uuid: userUuid,
     };
-    const userEntity = await this.userRepository.findOne(filterById);
+    const userEntity = await this.userRepository.findOne(filterByUuid);
     this.logger.debug(`User found: ${JSON.stringify(userEntity)}`);
     if (!userEntity) {
-      throw new NotFoundException(`User not found with ID: ${userId}`);
+      throw new NotFoundException(`User not found with UUID: ${userUuid}`);
     }
 
-    const deletedUserEntity = await this.userRepository.deleteById(userId);
+    const deletedUserEntity = await this.userRepository.deleteById(userEntity.id);
     const user = this.userMapper.entityToModel(deletedUserEntity);
     this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
     return user;

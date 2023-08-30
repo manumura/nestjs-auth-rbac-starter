@@ -1,11 +1,16 @@
 {
   "parser": "@typescript-eslint/parser",
-  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
-  "plugins": ["@typescript-eslint", "deprecation"],
+  "extends": [
+    "next/core-web-vitals",
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended"
+    // "plugin:deprecation/recommended"
+  ],
+  "plugins": ["@typescript-eslint"],
   "parserOptions": {
     "ecmaVersion": 2020,
     "sourceType": "module",
-    "project": "./tsconfig.build.json"
+    "project": "./tsconfig.json"
   },
   "rules": {
     "semi": ["error", "always"],
@@ -18,8 +23,6 @@
         "ignoreParameters": true
       }
     ],
-    "@typescript-eslint/no-unused-vars": "warn",
-    "deprecation/deprecation": "warn"
+    "@typescript-eslint/no-unused-vars": "warn"
   }
 }
-  

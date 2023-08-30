@@ -4,7 +4,7 @@ import {
   Delete,
   Get,
   Logger, Param,
-  ParseIntPipe, Post, Put,
+  ParseIntPipe, ParseUUIDPipe, Post, Put,
   Query, UseGuards, ValidationPipe
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -25,6 +25,7 @@ import { Role } from '../model/role.model';
 import { UserModel } from '../model/user.model';
 import { UserPageModel } from '../model/user.page.model';
 import { UserService } from '../service/user.service';
+import { UUID } from 'crypto';
 
 @Controller()
 export class UserController {
@@ -60,42 +61,42 @@ export class UserController {
     return this.userService.findAll(getUsersDto);
   }
 
-  @Get('/v1/users/:id')
+  @Get('/v1/users/:uuid')
   @Roles(Role.ADMIN)
   @UseGuards(AuthGuard(), UserActiveGuard, RolesGuard)
   @ApiBearerAuth()
   @ApiUnauthorizedResponse()
   @ApiForbiddenResponse()
   @ApiOkResponse({ type: UserModel })
-  findUserById(@Param('id', ParseIntPipe) id: number): Promise<UserModel> {
-    this.logger.log(`Get user with ID ${id}`);
-    return this.userService.findById(id);
+  findUserByUuid(@Param('uuid', ParseUUIDPipe) uuid: UUID): Promise<UserModel> {
+    this.logger.log(`Get user with UUID ${uuid}`);
+    return this.userService.findByUuid(uuid);
   }
 
-  @Put('/v1/users/:id')
+  @Put('/v1/users/:uuid')
   @Roles(Role.ADMIN)
   @UseGuards(AuthGuard(), UserActiveGuard, RolesGuard)
   @ApiBearerAuth()
   @ApiUnauthorizedResponse()
   @ApiForbiddenResponse()
   @ApiOkResponse({ type: UserModel })
-  updateUserById(
-    @Param('id', ParseIntPipe) id: number,
+  updateUserByUuid(
+    @Param('uuid', ParseUUIDPipe) uuid: UUID,
     @Body(ValidationPipe) updateUserDto: UpdateUserDto,
   ): Promise<UserModel> {
-    this.logger.log(`Update user with ID ${id}`);
-    return this.userService.updateUserById(id, updateUserDto);
+    this.logger.log(`Update user with UUID ${uuid}`);
+    return this.userService.updateUserByUuid(uuid, updateUserDto);
   }
 
-  @Delete('/v1/users/:id')
+  @Delete('/v1/users/:uuid')
   @Roles(Role.ADMIN)
   @UseGuards(AuthGuard(), UserActiveGuard, RolesGuard)
   @ApiBearerAuth()
   @ApiUnauthorizedResponse()
   @ApiForbiddenResponse()
   @ApiOkResponse({ type: UserModel })
-  deleteUserById(@Param('id', ParseIntPipe) id: number): Promise<UserModel> {
-    this.logger.log(`Delete user with ID ${id}`);
-    return this.userService.deleteById(id);
+  deleteUserByUuid(@Param('uuid', ParseUUIDPipe) uuid: UUID): Promise<UserModel> {
+    this.logger.log(`Delete user with UUID ${uuid}`);
+    return this.userService.deleteById(uuid);
   }
 }

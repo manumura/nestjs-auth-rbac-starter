@@ -221,16 +221,17 @@ export class UserRepository {
   }
 
   async findOne(filter: FilterUserDto): Promise<UserWithRole | null> {
-    const { active, id, email } = filter;
+    const { active, id, uuid, email } = filter;
 
-    if (!id && !email) {
-      this.logger.error('User ID or email are required');
+    if (!id && !uuid && !email) {
+      this.logger.error('User ID or UUID or email is required');
       return null;
     }
 
     return this.prisma.user.findFirst({
       where: {
         ...(id ? { id } : {}),
+        ...(uuid ? { uuid } : {}),
         ...(email ? { email } : {}),
         ...(active !== undefined && active !== null ? { isActive: active.toString().toLowerCase() === 'true' } : {}),
       },
