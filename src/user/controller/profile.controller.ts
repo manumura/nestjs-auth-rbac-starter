@@ -1,10 +1,22 @@
-import { BadRequestException, Body, Controller, Get, Logger, Put, Req, UseGuards, ValidationPipe } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Logger,
+  Put,
+  Req,
+  UseGuards,
+  ValidationPipe,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import {
   ApiBadRequestResponse,
-  ApiBearerAuth, ApiConsumes, ApiForbiddenResponse,
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiForbiddenResponse,
   ApiOkResponse,
-  ApiUnauthorizedResponse
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { FastifyRequest } from 'fastify';
 import { UserActiveGuard } from '../../authentication/guard/user.active.guard';
@@ -13,12 +25,17 @@ import { GetUser } from '../../shared/decorator/get-user.decorator';
 import { UpdateProfileDto } from '../dto/update.profile.dto';
 import { UserModel } from '../model/user.model';
 import { UserService } from '../service/user.service';
+import { AuthenticatedUserModel } from '../model/authenticated.user.model';
+import { UserMapper } from '../mapper/user.mapper';
 
 @Controller()
 export class ProfileController {
   private logger = new Logger('ProfileController');
 
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly userMapper: UserMapper,
+  ) {}
 
   @Get('/v1/profile')
   @UseGuards(AuthGuard(), UserActiveGuard)
@@ -26,9 +43,9 @@ export class ProfileController {
   @ApiUnauthorizedResponse()
   @ApiForbiddenResponse()
   @ApiOkResponse({ type: UserModel })
-  getProfile(@GetUser() user: UserModel): UserModel {
+  getProfile(@GetUser() user: AuthenticatedUserModel): UserModel {
     this.logger.log(`Get profile for user with email ${user.email}`);
-    return user;
+    return this.userMapper.authenticatedUserModelToUserModel(user);
   }
 
   @Put('/v1/profile')
@@ -40,7 +57,7 @@ export class ProfileController {
   @ApiBadRequestResponse({ description: 'Validation failed' })
   updateProfile(
     @Body(ValidationPipe) updateProfileDto: UpdateProfileDto,
-    @GetUser() user: UserModel,
+    @GetUser() user: AuthenticatedUserModel,
   ): Promise<UserModel> {
     this.logger.log(`Update profile for user with email ${user.email}`);
     if (!user.id) {
@@ -58,7 +75,7 @@ export class ProfileController {
   @ApiForbiddenResponse()
   @ApiOkResponse({ type: UserModel })
   @ApiBadRequestResponse({ description: 'Validation failed' })
-  async updateProfileImage(@Req() req: FastifyRequest, @GetUser() user: UserModel): Promise<UserModel> {
+  async updateProfileImage(@Req() req: FastifyRequest, @GetUser() user: AuthenticatedUserModel): Promise<UserModel> {
     this.logger.log(`Update profile image for user with email ${user.email}`);
     if (!user.id) {
       throw new BadRequestException('User ID is required');

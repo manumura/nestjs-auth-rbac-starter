@@ -4,9 +4,9 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Role } from './role.model';
 
 @Exclude()
-export class UserModel {
-  // @Expose()
-  // @ApiProperty()
+export class AuthenticatedUserModel {
+  @Expose()
+  @ApiProperty()
   public readonly id: number;
 
   @Expose()

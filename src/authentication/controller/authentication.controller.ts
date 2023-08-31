@@ -21,6 +21,7 @@ import { RefreshTokenGuard } from '../guard/refresh.token.guard';
 import { UserActiveGuard } from '../guard/user.active.guard';
 import { LoginModel } from '../model/login.model';
 import { AuthenticationService } from '../service/authentication.service';
+import { AuthenticatedUserModel } from '../../user/model/authenticated.user.model';
 
 
 @Controller()
@@ -55,17 +56,16 @@ export class AuthenticationController {
   }
 
   @Post('/v1/logout')
-  @HttpCode(200)
+  @HttpCode(204)
   @UseGuards(LogoutGuard, UserActiveGuard)
   @ApiBearerAuth()
   @ApiUnauthorizedResponse()
   @ApiForbiddenResponse()
   @ApiOkResponse({ type: UserModel })
-  async logout(@GetUser() user: UserModel, @Res({ passthrough: true }) response: FastifyReply): Promise<UserModel> {
+  async logout(@GetUser() user: AuthenticatedUserModel, @Res({ passthrough: true }) response: FastifyReply): Promise<void> {
     this.logger.log(`User with email ${user.email} logged out`);
     clearAuthCookies(response);
     await this.authenticationService.logout(user.id);
-    return user;
   }
 
   @Post('/v1/refresh-token')
@@ -75,10 +75,10 @@ export class AuthenticationController {
   @ApiUnauthorizedResponse()
   @ApiForbiddenResponse()
   @ApiOkResponse({ type: LoginModel })
-  async refreshToken(@GetUser() user: UserModel, @Res({ passthrough: true }) response: FastifyReply): Promise<LoginModel> {
+  async refreshToken(@GetUser() user: AuthenticatedUserModel, @Res({ passthrough: true }) response: FastifyReply): Promise<LoginModel> {
     this.logger.log(`Refresh token for user with email ${user.email}`);
-    const login = await this.authenticationService.refreshToken(user.id);
-    setAuthCookies(response, login);
-    return login;
+    const loginModel = await this.authenticationService.refreshToken(user.id);
+    setAuthCookies(response, loginModel);
+    return loginModel;
   }
 }

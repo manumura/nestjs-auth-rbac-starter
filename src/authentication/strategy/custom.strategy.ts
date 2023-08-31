@@ -49,7 +49,7 @@ export class CustomStrategy extends PassportStrategy(Strategy, 'custom') {
       this.logger.error('User not found with access token');
       return this.fail({ message: 'User not found with access token' }, 401);
     }
-    const user = this.userMapper.entityToModel(userEntity);
+    const user = this.userMapper.entityToAuthenticatedUserModel(userEntity);
     this.logger.debug(`User found from access token: ${JSON.stringify(user)}`);
 
     return this.success(user);

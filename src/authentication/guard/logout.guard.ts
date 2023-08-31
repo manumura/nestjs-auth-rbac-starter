@@ -36,7 +36,7 @@ export class LogoutGuard implements CanActivate {
       this.logger.error('User not found from access token');
       throw new UnauthorizedException();
     }
-    const user = this.userMapper.entityToModel(userEntity);
+    const user = this.userMapper.entityToAuthenticatedUserModel(userEntity);
     this.logger.debug(`User found from access token: ${JSON.stringify(user)}`);
 
     request.user = user;
