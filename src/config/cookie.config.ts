@@ -10,5 +10,5 @@ export const COOKIE_OPTIONS: CookieSerializeOptions = {
   httpOnly: true,
   secure: appConfig.NODE_ENV === 'prod',
   path: '/',
-  sameSite: 'lax',
+  sameSite: appConfig.NODE_ENV === 'prod' ? 'none' : 'lax',
 };
