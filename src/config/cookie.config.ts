@@ -2,7 +2,7 @@
 import type { CookieSerializeOptions } from '@fastify/cookie';
 import { appConfig } from './config';
 
-const COOKIE_MAX_AGE = 60 * 60 * 8; // 8 hours
+const COOKIE_MAX_AGE = 60 * 60 * 24; // 24 hours
 
 export const COOKIE_OPTIONS: CookieSerializeOptions = {
   maxAge: COOKIE_MAX_AGE,
