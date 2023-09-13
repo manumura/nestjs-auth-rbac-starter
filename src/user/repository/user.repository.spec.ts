@@ -8,6 +8,7 @@ import { GetUsersDto } from '../dto/get.users.dto';
 import { LanguageCode } from '../model/language-code.model';
 import { Role as RoleEnum } from '../model/role.model';
 import { UserRepository } from './user.repository';
+import { randomUUID } from 'crypto';
 
 describe('UserRepository', () => {
   let prisma: DeepMockProxy<PrismaClient>;
@@ -22,13 +23,19 @@ describe('UserRepository', () => {
     description: 'user role',
   };
 
+  const uuid1 = randomUUID();
+  const uuid2 = randomUUID();
+
   const mockUserEntity1: UserWithRole = {
     id: 1,
+    uuid: uuid1,
     name: 'Test user',
     email: 'test@test.com',
     password: 'testpass',
     role: mockRoleEntity,
     isActive: true,
+    imageId: 'imageId1',
+    imageUrl: 'imageUrl1',
     createdAt: now,
     updatedAt: now,
     roleId: 1,
@@ -36,11 +43,14 @@ describe('UserRepository', () => {
 
   const mockUserEntity2: UserWithRole = {
     id: 2,
+    uuid: uuid2,
     name: 'Test2 user',
     email: 'test2@test2.com',
     password: 'testpass2',
     role: mockRoleEntity,
     isActive: true,
+    imageId: 'imageId2',
+    imageUrl: 'imageUrl2',
     createdAt: now,
     updatedAt: now,
     roleId: 1,

@@ -33,7 +33,6 @@ const LOG_LEVEL_FILE = config.get<string>('log.level.file');
 const LOG_LEVEL_QUERY = config.get<string>('log.level.query');
 
 const RESET_PASSWORD_LINK = config.get<string>('link.reset-password');
-
 const MAIL_SENDER = config.get<string>('mail.sender');
 
 export const appConfig = {

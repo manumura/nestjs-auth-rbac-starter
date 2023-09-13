@@ -14,6 +14,9 @@ import { UserModel } from '../model/user.model';
 import { RoleRepository } from '../repository/role.repository';
 import { UserRepository } from '../repository/user.repository';
 import { UserService } from './user.service';
+import { randomUUID } from 'crypto';
+import { StorageService } from '../../storage/storage.service';
+import { mock } from 'node:test';
 
 const mockUserRepository = () => ({
   isPasswordValid: jest.fn(),
@@ -30,6 +33,7 @@ const mockRoleRepository = () => ({});
 const mockResetPasswordTokenRepository = () => ({});
 const mockAuthenticationTokenRepository = () => ({});
 const mockEmailService = () => ({});
+const mockStorageService = () => ({});
 
 const mockUserMapper = () => ({
   entitiesToModels: jest.fn(),
@@ -41,24 +45,32 @@ const mockResetPasswordTokenMapper = () => ({
 });
 
 const now = new Date();
+const uuid1 = randomUUID();
+const uuid2 = randomUUID();
 
 const mockUser: UserModel = {
   id: 1,
+  uuid: uuid1,
   name: 'Test user',
   email: 'test@test.com',
   password: 'testpass',
   role: Role.ADMIN,
   isActive: true,
+  imageId: 'imageId1',
+  imageUrl: 'imageUrl1',
   createdAt: now,
   updatedAt: now,
 };
 
 const mockUserEntity: UserWithRole = {
   id: 1,
+  uuid: uuid2,
   name: 'Test user',
   email: 'test@test.com',
   password: 'testpass',
   isActive: true,
+  imageId: 'imageId2',
+  imageUrl: 'imageUrl2',
   createdAt: now,
   updatedAt: now,
   roleId: 1,
@@ -82,6 +94,7 @@ const transportOptions = {
 describe('UserService', () => {
   let userService: UserService;
   let emailService: EmailService;
+  let storageService: StorageService;
   let userRepository;
   let roleRepository;
   let userMapper;
@@ -106,6 +119,7 @@ describe('UserService', () => {
       providers: [
         UserService,
         { provide: EmailService, useFactory: mockEmailService },
+        { provide: StorageService, useFactory: mockStorageService },
         { provide: UserRepository, useFactory: mockUserRepository },
         { provide: RoleRepository, useFactory: mockRoleRepository },
         { provide: ResetPasswordTokenRepository, useFactory: mockResetPasswordTokenRepository },
@@ -118,6 +132,7 @@ describe('UserService', () => {
 
     userService = module.get<UserService>(UserService);
     emailService = module.get<EmailService>(EmailService);
+    storageService = module.get<StorageService>(StorageService);
     userRepository = module.get<UserRepository>(UserRepository);
     roleRepository = module.get<RoleRepository>(RoleRepository);
     userMapper = module.get<UserMapper>(UserMapper);
@@ -160,7 +175,7 @@ describe('UserService', () => {
       userRepository.findOne.mockResolvedValue(mockUserEntity);
       userMapper.entityToModel.mockReturnValue(mockUser);
 
-      const result = await userService.findById(1);
+      const result = await userService.findByUuid(uuid1);
 
       expect(userRepository.findOne).toHaveBeenCalled();
       expect(userMapper.entityToModel).toHaveBeenCalledWith(mockUserEntity);
@@ -170,7 +185,8 @@ describe('UserService', () => {
     it('should throw exception if user not found', async () => {
       userRepository.findOne.mockResolvedValue(null);
 
-      expect(userService.findById(42)).rejects.toThrow(NotFoundException);
+      const uuid = randomUUID();
+      expect(userService.findByUuid(uuid)).rejects.toThrow(NotFoundException);
     });
   });
 });
