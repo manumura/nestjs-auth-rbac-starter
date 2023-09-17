@@ -1,5 +1,5 @@
-import { CanActivate, ExecutionContext, Injectable, Logger, ForbiddenException } from '@nestjs/common';
-import { UserModel } from '../../user/model/user.model';
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable, Logger } from '@nestjs/common';
+import { AuthenticatedUserModel } from '../../user/model/authenticated.user.model';
 
 @Injectable()
 export class UserInactiveGuard implements CanActivate {
@@ -7,7 +7,7 @@ export class UserInactiveGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
-    const user = request.user as UserModel;
+    const user = request.user as AuthenticatedUserModel;
     this.logger.debug(`User logged in: ${JSON.stringify(user)}`);
 
     const canActivate = user && !user.isActive;

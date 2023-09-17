@@ -45,7 +45,7 @@ export class RefreshTokenGuard implements CanActivate {
       this.logger.error('User not found from refresh token');
       throw new RefreshTokenException();
     }
-    const user = this.userMapper.entityToModel(userEntity);
+    const user = this.userMapper.entityToAuthenticatedUserModel(userEntity);
     this.logger.debug(`User found from refresh token: ${JSON.stringify(user)}`);
 
     request.user = user;
