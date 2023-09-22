@@ -9,7 +9,7 @@ export const COOKIE_OPTIONS: CookieSerializeOptions = {
   expires: new Date(Date.now() + COOKIE_MAX_AGE * 1000),
   httpOnly: true,
   secure: appConfig.NODE_ENV === 'prod',
-  domain: appConfig.NODE_ENV === 'prod' ? 'manumura.com' : undefined,
+  domain: appConfig.DOMAIN,
   path: '/',
   sameSite: 'lax',
 };

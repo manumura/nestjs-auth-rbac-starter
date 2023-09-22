@@ -7,6 +7,7 @@ const COOKIE_SECRET = process.env.COOKIE_SECRET;
 const ID_TOKEN_PRIVATE_KEY_AS_BASE64 = process.env.ID_TOKEN_PRIVATE_KEY_AS_BASE64 as string;
 const ID_TOKEN_PRIVATE_KEY = Buffer.from(ID_TOKEN_PRIVATE_KEY_AS_BASE64, 'base64').toString('utf8');
 const CORS_ALLOWED_ORIGNS = process.env.CORS_ALLOWED_ORIGNS;
+const DOMAIN = process.env.DOMAIN;
 const SERVER_PORT = process.env.SERVER_PORT;
 const DATABASE_URL = process.env.DATABASE_URL;
 
@@ -40,6 +41,7 @@ export const appConfig = {
   COOKIE_SECRET,
   ID_TOKEN_PRIVATE_KEY,
   CORS_ALLOWED_ORIGNS,
+  DOMAIN,
   SERVER_PORT,
   DATABASE_URL,
   SMTP_HOST,

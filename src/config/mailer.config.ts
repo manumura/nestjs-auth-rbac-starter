@@ -1,4 +1,4 @@
-import SMTPConnection = require('nodemailer/lib/smtp-connection');
+import SMTPConnection from 'nodemailer/lib/smtp-connection';
 import { appConfig } from './config';
 import { MailerOptions } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
