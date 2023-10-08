@@ -104,7 +104,7 @@ export class UserService {
 
     const user = await this.create(email, name, RoleEnum.USER, password);
 
-    // TODO send email to root user
+    // Send new user email to root user
     const rootUserEmail = appConfig.ROOT_ACCOUNT_EMAIL;
     this.logger.verbose(`[EMAIL][NEW_USER] Sending email to: ${rootUserEmail}`);
     this.emailService
