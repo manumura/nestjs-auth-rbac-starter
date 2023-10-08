@@ -17,10 +17,11 @@ const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASSWORD = process.env.SMTP_PASSWORD;
 const smtpSecureAsString = process.env.SMTP_SECURE;
 const SMTP_SECURE: boolean = smtpSecureAsString ? smtpSecureAsString.toLowerCase() === 'true' : true;
+const ROOT_ACCOUNT_EMAIL = process.env.ROOT_ACCOUNT_EMAIL ?? '';
 
-const CLOUDINARY_NAME = process.env.CLOUDINARY_NAME || config.get('cloudinary.name');
-const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY || config.get('cloudinary.apiKey');
-const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET || config.get('cloudinary.apiSecret');
+const CLOUDINARY_NAME = process.env.CLOUDINARY_NAME ?? config.get('cloudinary.name');
+const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY ?? config.get('cloudinary.apiKey');
+const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET ?? config.get('cloudinary.apiSecret');
 
 const ACCESS_TOKEN_EXPIRES_IN_AS_SECONDS = config.get<number>('token.access.expiresInAsSeconds');
 const REFRESH_TOKEN_EXPIRES_IN_AS_SECONDS = config.get<number>('token.refresh.expiresInAsSeconds');
@@ -49,6 +50,7 @@ export const appConfig = {
   SMTP_USER,
   SMTP_PASSWORD,
   SMTP_SECURE,
+  ROOT_ACCOUNT_EMAIL,
   CLOUDINARY_NAME,
   CLOUDINARY_API_KEY,
   CLOUDINARY_API_SECRET,

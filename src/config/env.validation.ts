@@ -16,6 +16,7 @@ export function validateEnv() {
     SMTP_USER: str(),
     SMTP_PASSWORD: str(),
     SMTP_SECURE: bool(),
+    ROOT_ACCOUNT_EMAIL: str(),
     CLOUDINARY_NAME: str(),
     CLOUDINARY_API_KEY: str(),
     CLOUDINARY_API_SECRET: str(),

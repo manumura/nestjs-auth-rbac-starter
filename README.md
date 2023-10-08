@@ -66,7 +66,7 @@ $ npm run test:cov
 
 ```bash
 # buuild docker image
-docker build -t manumura/nestjs-auth-rbac-starter .
+docker build -t manumura/nestjs-auth-rbac-starter:latest .
 
 # run docker container
 # (use databse config: DATABASE_URL=postgresql://<user>:<password>@host.docker.internal:5432/<db-name>)

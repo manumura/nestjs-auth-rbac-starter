@@ -70,4 +70,33 @@ export class EmailService {
       // throw new Error(`Failed to send temporary password email to ${email}`);
     }
   }
+
+  async sendNewUserEmail(rootUserEmail: string, langCode: string, newUserEmail: string): Promise<any> {
+    this.logger.verbose(`Send new user email to: ${rootUserEmail}`);
+    if (!rootUserEmail || !newUserEmail) {
+      throw new Error('Root user email or new user email undefined');
+    }
+
+    // Default lang code to english if not found
+    if (!langCode) {
+      langCode = LanguageCode.EN;
+    }
+
+    try {
+      const templateData = {
+        newUserEmail,
+      };
+
+      const info = await this.mailerService.sendMail({
+        to: rootUserEmail,
+        subject: appConstants.NEW_USER_EMAIL_SUBJECT[langCode],
+        template: `${appConstants.NEW_USER_EMAIL_TEMPLATE}-${langCode}`,
+        context: templateData,
+      });
+      this.logger.verbose(`Response Send email: ${JSON.stringify(info)}`);
+      return info;
+    } catch (error) {
+      this.logger.error(`Failed to send new user email to ${rootUserEmail}`, error.stack);
+    }
+  }
 }

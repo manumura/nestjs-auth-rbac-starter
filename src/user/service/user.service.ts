@@ -23,6 +23,7 @@ import { UserModel } from '../model/user.model';
 import { RoleRepository } from '../repository/role.repository';
 import { UserRepository } from '../repository/user.repository';
 import { UUID } from 'crypto';
+import { appConfig } from '../../config/config';
 
 @Injectable()
 export class UserService {
@@ -102,6 +103,17 @@ export class UserService {
     }
 
     const user = await this.create(email, name, RoleEnum.USER, password);
+
+    // TODO send email to root user
+    const rootUserEmail = appConfig.ROOT_ACCOUNT_EMAIL;
+    this.logger.verbose(`[EMAIL][NEW_USER] Sending email to: ${rootUserEmail}`);
+    this.emailService
+      .sendNewUserEmail(rootUserEmail, 'en', email)
+      .then((result) => {
+        this.logger.verbose(`[EMAIL][NEW_USER] Result Sending email: ${JSON.stringify(result)}`);
+      })
+      .catch((err) => this.logger.error(err));
+
     return user;
   }
 
