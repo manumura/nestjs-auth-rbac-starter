@@ -14,6 +14,8 @@ import { validateEnv } from './config/env.validation';
 import { loggerOptions } from './config/logger.config';
 import { HttpExceptionFilter } from './shared/filter/http-exception-filter';
 import { UserModule } from './user/user.module';
+import cluster from "cluster";
+import * as process from "node:process";
 
 // TODO session in redis https://blog.logrocket.com/add-redis-cache-nestjs-app/
 async function bootstrap() {
@@ -88,4 +90,27 @@ async function bootstrap() {
   await app.listen(port, '0.0.0.0');
   logger.verbose(`Application running on port ${port}, NODE_ENV: ${appConfig.NODE_ENV}`);
 }
+
+// Run in cluster mode
+function clusterize(callback: Function): void {
+  const logger = new Logger('clusterize');
+  const numCPUs = parseInt(process.argv[2] || "1");
+
+  if (!cluster.isPrimary) {
+    callback();
+    return;
+  }
+
+  logger.verbose(`MASTER SERVER (${process.pid}) IS RUNNING `);
+
+  for (let i = 0; i < numCPUs; i++) {
+    cluster.fork();
+  }
+
+  cluster.on("exit", (worker, code, signal) => {
+    console.log(`worker ${worker.process.pid} died`);
+  });
+}
+
+// clusterize(bootstrap);
 bootstrap();
