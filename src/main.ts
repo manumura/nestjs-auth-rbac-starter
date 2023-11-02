@@ -97,8 +97,7 @@ function clusterize(callback: Function): void {
   const numCPUs = parseInt(process.argv[2] || "1");
 
   if (!cluster.isPrimary) {
-    callback();
-    return;
+    return callback();
   }
 
   logger.verbose(`MASTER SERVER (${process.pid}) IS RUNNING `);
