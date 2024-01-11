@@ -5,5 +5,5 @@ log:
     query: query, error
 
 link:
-  reset-password: http://localhost:3000/reset-password?token=
+  reset-password: http://localhost:3001/reset-password?token=
   
