@@ -2,23 +2,23 @@ import { IsBoolean, IsEmail, IsPositive, IsString } from 'class-validator';
 
 export class UpdateUserEntityDto {
   @IsEmail()
-  email?: string;
+  public email?: string;
 
   @IsString()
-  password?: string;
+  public password?: string;
 
   @IsString()
-  name?: string;
+  public name?: string;
 
   @IsBoolean()
-  isActive?: boolean;
+  public isActive?: boolean;
 
   @IsPositive()
-  roleId?: number;
+  public roleId?: number;
 
   @IsString()
-  imageId?: string;
+  public imageId?: string;
 
   @IsString()
-  imageUrl?: string;
+  public imageUrl?: string;
 }

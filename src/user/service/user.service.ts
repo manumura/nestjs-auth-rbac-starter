@@ -208,7 +208,7 @@ export class UserService {
     this.logger.verbose(`Upload result: ${JSON.stringify(uploadResponse)}`);
     this.storageService.deleteFromLocalPath(saveResponse.filepath);
 
-    if (!uploadResponse || !uploadResponse.public_id || !uploadResponse.secure_url) {
+    if (!uploadResponse?.public_id || !uploadResponse?.secure_url) {
       throw new BadRequestException('Image ID or image URL undefined');
     }
 
