@@ -198,20 +198,6 @@ export class UserService {
       throw new BadRequestException('User ID undefined');
     }
 
-    const saveResponse = await this.storageService.saveImageToLocalPath(file);
-    if (!saveResponse) {
-      throw new InternalServerErrorException('Error while saving file');
-    }
-
-    this.logger.verbose(`Uploading file: ${saveResponse.filename}`);
-    const uploadResponse = await this.storageService.uploadProfileImage(saveResponse.filepath, userId);
-    this.logger.verbose(`Upload result: ${JSON.stringify(uploadResponse)}`);
-    this.storageService.deleteFromLocalPath(saveResponse.filepath);
-
-    if (!uploadResponse?.public_id || !uploadResponse?.secure_url) {
-      throw new BadRequestException('Image ID or image URL undefined');
-    }
-
     this.logger.debug(`Find user by ID: ${userId}`);
     const filterById: FilterUserDto = {
       id: userId,
@@ -225,6 +211,20 @@ export class UserService {
     // Delete previous image
     if (userEntity.imageId) {
       await this.storageService.delete(userEntity.imageId);
+    }
+
+    const saveResponse = await this.storageService.saveImageToLocalPath(file);
+    if (!saveResponse) {
+      throw new InternalServerErrorException('Error while saving file');
+    }
+
+    this.logger.verbose(`Uploading file: ${saveResponse.filename}`);
+    const uploadResponse = await this.storageService.uploadProfileImage(saveResponse.filepath, userEntity.uuid);
+    this.logger.verbose(`Upload result: ${JSON.stringify(uploadResponse)}`);
+    this.storageService.deleteFromLocalPath(saveResponse.filepath);
+
+    if (!uploadResponse?.public_id || !uploadResponse?.secure_url) {
+      throw new BadRequestException('Image ID or image URL undefined');
     }
 
     const updateUserDto: UpdateUserEntityDto = {

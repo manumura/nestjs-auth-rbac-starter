@@ -7,18 +7,19 @@ import { extname } from 'path';
 import { Transform, pipeline } from 'stream';
 import util from 'util';
 import { UploadResponseModel } from '../shared/model/upload.response.model';
+import { UUID } from 'crypto';
 
 @Injectable()
 export class StorageService {
   private logger = new Logger('StorageService');
   private pump = util.promisify(pipeline);
 
-  async uploadProfileImage(filepath: string, userId: number): Promise<UploadApiResponse> {
+  async uploadProfileImage(filepath: string, userUuId: string): Promise<UploadApiResponse> {
     const nowAsString = moment().utc().format('YYYYMMDDHHmmss');
     const options: UploadApiOptions = {
-      folder: 'profiles/' + userId,
+      folder: 'profiles/' + userUuId,
       resource_type: 'image',
-      public_id: 'profile_' + userId + '_' + nowAsString,
+      public_id: 'profile_' + userUuId + '_' + nowAsString,
       transformation: [{ width: 500, height: 500, crop: 'limit' }],
     };
     const response = await cloudinary.v2.uploader.upload(filepath, options);
@@ -28,12 +29,12 @@ export class StorageService {
   // https://cloudinary.com/documentation/upload_images#chunked_asset_upload
   // https://support.cloudinary.com/hc/en-us/articles/208263735-Guidelines-for-implementing-chunked-upload-to-Cloudinary
   // https://medium.com/@maksim_smagin/software-architecture-101-how-to-upload-file-s3-nodejs-fastify-68fceb5c5133
-  async uploadVideo(filepath: string, userId: number, callback: UploadResponseCallback): Promise<UploadApiResponse> {
+  async uploadVideo(filepath: string, userUuId: string, callback: UploadResponseCallback): Promise<UploadApiResponse> {
     const nowAsString = moment().utc().format('YYYYMMDDHHmmss');
     const options: UploadApiOptions = {
       // filename: editCloudinaryFileName,
-      folder: 'videos/' + userId,
-      public_id: 'video_' + userId + '_' + nowAsString,
+      folder: 'videos/' + userUuId,
+      public_id: 'video_' + userUuId + '_' + nowAsString,
       resource_type: 'video',
     };
     const response = await cloudinary.v2.uploader.upload_large(filepath, options, callback);
