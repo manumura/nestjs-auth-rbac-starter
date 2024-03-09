@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Prisma, Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import moment from 'moment';
+import { v4 as uuidv4 } from 'uuid';
 import { UserWithRole } from '../../../prisma/custom-types';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { appConfig } from '../../config/config';
@@ -11,8 +12,6 @@ import { FilterUserDto } from '../dto/filter.user.dto';
 import { FilterUsersDto } from '../dto/filter.users.dto';
 import { GetUsersDto } from '../dto/get.users.dto';
 import { UpdateUserEntityDto } from '../dto/update.user.entity.dto';
-import { Role as RoleEnum } from '../model/role.model';
-import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class UserRepository {

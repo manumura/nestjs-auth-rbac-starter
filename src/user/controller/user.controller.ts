@@ -4,7 +4,7 @@ import {
   Delete,
   Get,
   Logger, Param,
-  ParseIntPipe, ParseUUIDPipe, Post, Put,
+  ParseUUIDPipe, Post, Put,
   Query, UseGuards, ValidationPipe
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -14,6 +14,7 @@ import {
   ApiOkResponse,
   ApiUnauthorizedResponse
 } from '@nestjs/swagger';
+import { UUID } from 'crypto';
 import { RolesGuard } from '../../authentication/guard/roles.guard';
 import { UserActiveGuard } from '../../authentication/guard/user.active.guard';
 import { Roles } from '../../shared/decorator/roles.decorator';
@@ -25,7 +26,6 @@ import { Role } from '../model/role.model';
 import { UserModel } from '../model/user.model';
 import { UserPageModel } from '../model/user.page.model';
 import { UserService } from '../service/user.service';
-import { UUID } from 'crypto';
 
 @Controller()
 export class UserController {

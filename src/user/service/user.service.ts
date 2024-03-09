@@ -1,19 +1,21 @@
 import { MultipartFile } from '@fastify/multipart';
-import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
 import { ValidationError, validate } from 'class-validator';
+import { UUID } from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import { UserWithRole } from '../../../prisma/custom-types';
+import { appConfig } from '../../config/config';
 import { EmailService } from '../../notification/email.service';
 import { PageModel } from '../../shared/model/page.model';
-import { FileDto } from '../../storage/file.dto';
 import { StorageService } from '../../storage/storage.service';
 import { CreateUserDto } from '../dto/create.user.dto';
 import { FilterUserDto } from '../dto/filter.user.dto';
 import { FilterUsersDto } from '../dto/filter.users.dto';
 import { GetUsersDto } from '../dto/get.users.dto';
 import { RegisterDto } from '../dto/register.dto';
+import { UpdatePasswordDto } from '../dto/update.password.dto';
 import { UpdateProfileDto } from '../dto/update.profile.dto';
 import { UpdateUserDto } from '../dto/update.user.dto';
 import { UpdateUserEntityDto } from '../dto/update.user.entity.dto';
@@ -22,8 +24,6 @@ import { Role as RoleEnum } from '../model/role.model';
 import { UserModel } from '../model/user.model';
 import { RoleRepository } from '../repository/role.repository';
 import { UserRepository } from '../repository/user.repository';
-import { UUID } from 'crypto';
-import { appConfig } from '../../config/config';
 
 @Injectable()
 export class UserService {
@@ -164,9 +164,9 @@ export class UserService {
 
   async updateProfileById(userId: number, updateProfileDto: UpdateProfileDto): Promise<UserModel> {
     this.logger.debug('Update profile by ID');
-    const { name, password } = updateProfileDto;
-    if (!userId || (!name && !password)) {
-      throw new BadRequestException('User ID, or name and password undefined');
+    const { name } = updateProfileDto;
+    if (!userId || !name) {
+      throw new BadRequestException('User ID or name are undefined');
     }
 
     this.logger.debug(`Find user by ID: ${userId}`);
@@ -180,7 +180,6 @@ export class UserService {
     }
 
     const updateUserEntityDto: UpdateUserEntityDto = {
-      password,
       name,
     };
 
@@ -188,53 +187,6 @@ export class UserService {
     const user = this.userMapper.entityToModel(updatedUserEntity);
     this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
 
-    return user;
-  }
-
-  async updateImageById(userId: number, file: MultipartFile): Promise<UserModel> {
-    this.logger.debug('Update user image by ID');
-
-    if (!userId) {
-      throw new BadRequestException('User ID undefined');
-    }
-
-    this.logger.debug(`Find user by ID: ${userId}`);
-    const filterById: FilterUserDto = {
-      id: userId,
-    };
-    const userEntity = await this.userRepository.findOne(filterById);
-    this.logger.debug(`User found: ${JSON.stringify(userEntity)}`);
-    if (!userEntity) {
-      throw new NotFoundException(`User not found with ID: ${userId}`);
-    }
-
-    // Delete previous image
-    if (userEntity.imageId) {
-      await this.storageService.delete(userEntity.imageId);
-    }
-
-    const saveResponse = await this.storageService.saveImageToLocalPath(file);
-    if (!saveResponse) {
-      throw new InternalServerErrorException('Error while saving file');
-    }
-
-    this.logger.verbose(`Uploading file: ${saveResponse.filename}`);
-    const uploadResponse = await this.storageService.uploadProfileImage(saveResponse.filepath, userEntity.uuid);
-    this.logger.verbose(`Upload result: ${JSON.stringify(uploadResponse)}`);
-    this.storageService.deleteFromLocalPath(saveResponse.filepath);
-
-    if (!uploadResponse?.public_id || !uploadResponse?.secure_url) {
-      throw new BadRequestException('Image ID or image URL undefined');
-    }
-
-    const updateUserDto: UpdateUserEntityDto = {
-      imageId: uploadResponse.public_id,
-      imageUrl: uploadResponse.secure_url,
-    };
-
-    const updatedUserEntity = await this.userRepository.updateById(userId, updateUserDto);
-    const user = this.userMapper.entityToModel(updatedUserEntity);
-    this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
     return user;
   }
 
@@ -279,6 +231,86 @@ export class UserService {
     }
 
     const updatedUserEntity = await this.userRepository.updateById(userEntity.id, updateUserEntityDto);
+    const user = this.userMapper.entityToModel(updatedUserEntity);
+    this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
+    return user;
+  }
+
+  async updatePasswordByUserId(userId: number, updatePasswordDto: UpdatePasswordDto): Promise<UserModel> {
+    this.logger.debug('Update password by user ID');
+    const { oldPassword, newPassword } = updatePasswordDto;
+    if (!userId || !oldPassword || !newPassword) {
+      throw new BadRequestException('User ID or password are undefined');
+    }
+
+    this.logger.debug(`Find user by ID: ${userId}`);
+    const filterById: FilterUserDto = {
+      id: userId,
+    };
+    const userEntity = await this.userRepository.findOne(filterById);
+    this.logger.debug(`User found: ${JSON.stringify(userEntity)}`);
+    if (!userEntity) {
+      throw new NotFoundException(`User not found with ID: ${userId}`);
+    }
+
+    const isValidPassword = await this.userRepository.isPasswordValid(oldPassword, userEntity.password);
+    if (!isValidPassword) {
+      throw new UnauthorizedException('Invalid password');
+    }
+
+    const updateUserEntityDto: UpdateUserEntityDto = {
+      password: newPassword,
+    };
+
+    const updatedUserEntity = await this.userRepository.updateById(userId, updateUserEntityDto);
+    const user = this.userMapper.entityToModel(updatedUserEntity);
+    this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
+
+    return user;
+  }
+
+  async updateImageByUserId(userId: number, file: MultipartFile): Promise<UserModel> {
+    this.logger.debug('Update user image by user ID');
+
+    if (!userId) {
+      throw new BadRequestException('User ID undefined');
+    }
+
+    this.logger.debug(`Find user by ID: ${userId}`);
+    const filterById: FilterUserDto = {
+      id: userId,
+    };
+    const userEntity = await this.userRepository.findOne(filterById);
+    this.logger.debug(`User found: ${JSON.stringify(userEntity)}`);
+    if (!userEntity) {
+      throw new NotFoundException(`User not found with ID: ${userId}`);
+    }
+
+    // Delete previous image
+    if (userEntity.imageId) {
+      await this.storageService.delete(userEntity.imageId);
+    }
+
+    const saveResponse = await this.storageService.saveImageToLocalPath(file);
+    if (!saveResponse) {
+      throw new InternalServerErrorException('Error while saving file');
+    }
+
+    this.logger.verbose(`Uploading file: ${saveResponse.filename}`);
+    const uploadResponse = await this.storageService.uploadProfileImage(saveResponse.filepath, userEntity.uuid);
+    this.logger.verbose(`Upload result: ${JSON.stringify(uploadResponse)}`);
+    this.storageService.deleteFromLocalPath(saveResponse.filepath);
+
+    if (!uploadResponse?.public_id || !uploadResponse?.secure_url) {
+      throw new BadRequestException('Image ID or image URL undefined');
+    }
+
+    const updateUserDto: UpdateUserEntityDto = {
+      imageId: uploadResponse.public_id,
+      imageUrl: uploadResponse.secure_url,
+    };
+
+    const updatedUserEntity = await this.userRepository.updateById(userId, updateUserDto);
     const user = this.userMapper.entityToModel(updatedUserEntity);
     this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
     return user;

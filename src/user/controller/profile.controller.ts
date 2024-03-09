@@ -27,6 +27,7 @@ import { UserModel } from '../model/user.model';
 import { UserService } from '../service/user.service';
 import { AuthenticatedUserModel } from '../model/authenticated.user.model';
 import { UserMapper } from '../mapper/user.mapper';
+import { UpdatePasswordDto } from '../dto/update.password.dto';
 
 @Controller()
 export class ProfileController {
@@ -66,6 +67,24 @@ export class ProfileController {
     return this.userService.updateProfileById(user.id, updateProfileDto);
   }
 
+  @Put('/v1/profile/password')
+  @UseGuards(AuthGuard())
+  @ApiBearerAuth()
+  @ApiUnauthorizedResponse()
+  @ApiForbiddenResponse()
+  @ApiOkResponse({ type: UserModel })
+  @ApiBadRequestResponse({ description: 'Validation failed' })
+  updatePassword(
+    @Body(ValidationPipe) updatePasswordDto: UpdatePasswordDto,
+    @GetUser() user: AuthenticatedUserModel,
+  ): Promise<UserModel> {
+    this.logger.log(`Update password for user with email ${user.email}`);
+    if (!user.id) {
+      throw new BadRequestException('User ID is required');
+    }
+    return this.userService.updatePasswordByUserId(user.id, updatePasswordDto);
+  }
+
   @Put('/v1/profile/image')
   @UseGuards(AuthGuard())
   @ApiConsumes('multipart/form-data')
@@ -91,6 +110,6 @@ export class ProfileController {
       throw new BadRequestException('File not found');
     }
 
-    return this.userService.updateImageById(user.id, file);
+    return this.userService.updateImageByUserId(user.id, file);
   }
 }
