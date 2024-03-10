@@ -1,5 +1,5 @@
 import { MultipartFile } from '@fastify/multipart';
-import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
 import { ValidationError, validate } from 'class-validator';
@@ -255,7 +255,7 @@ export class UserService {
 
     const isValidPassword = await this.userRepository.isPasswordValid(oldPassword, userEntity.password);
     if (!isValidPassword) {
-      throw new UnauthorizedException('Invalid password');
+      throw new BadRequestException('Invalid password');
     }
 
     const updateUserEntityDto: UpdateUserEntityDto = {
