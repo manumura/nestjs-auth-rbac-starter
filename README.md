@@ -75,6 +75,12 @@ docker run -it --rm -p 9002:9002 --name nestjs-auth-rbac-starter --env-file=.env
 # run docker container with docker compose
 # (use databse config: DATABASE_URL=postgresql://<user>:<password>@postgres:5432/<db-name>)
 docker compose up
+
+# run postgres container
+docker run -it --name postgres -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -d postgres:16-alpine
+
+# run redis container
+docker run -it --name redis -p 6379:6379 -d redis:7-alpine
 ```
 
 ## Support
