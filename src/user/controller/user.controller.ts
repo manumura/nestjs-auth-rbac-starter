@@ -3,9 +3,10 @@ import {
   Controller,
   Delete,
   Get,
-  Logger, Param,
+  Logger,
+  Param,
   ParseUUIDPipe, Post, Put,
-  Query, UseGuards, ValidationPipe
+  Query, Sse, UseGuards, ValidationPipe
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import {
@@ -15,6 +16,7 @@ import {
   ApiUnauthorizedResponse
 } from '@nestjs/swagger';
 import { UUID } from 'crypto';
+import { Observable } from 'rxjs';
 import { RolesGuard } from '../../authentication/guard/roles.guard';
 import { UserActiveGuard } from '../../authentication/guard/user.active.guard';
 import { Roles } from '../../shared/decorator/roles.decorator';
@@ -23,6 +25,7 @@ import { CreateUserDto } from '../dto/create.user.dto';
 import { GetUsersDto } from '../dto/get.users.dto';
 import { UpdateUserDto } from '../dto/update.user.dto';
 import { Role } from '../model/role.model';
+import { UserChangeEvent } from '../model/user.change.event';
 import { UserModel } from '../model/user.model';
 import { UserPageModel } from '../model/user.page.model';
 import { UserService } from '../service/user.service';
@@ -98,5 +101,17 @@ export class UserController {
   deleteUserByUuid(@Param('uuid', ParseUUIDPipe) uuid: UUID): Promise<UserModel> {
     this.logger.log(`Delete user with UUID ${uuid}`);
     return this.userService.deleteById(uuid);
+  }
+
+  @Sse('/v1/events/users')
+  @Roles(Role.ADMIN)
+  @UseGuards(AuthGuard(), UserActiveGuard, RolesGuard)
+  @ApiBearerAuth()
+  @ApiUnauthorizedResponse()
+  @ApiForbiddenResponse()
+  @ApiOkResponse({ type: Observable<UserChangeEvent> })
+  streamUserChangeEvents(): Observable<UserChangeEvent | null> {
+    this.logger.log('Subscribe to user change events');
+    return this.userService.userChangeEvent$;
   }
 }

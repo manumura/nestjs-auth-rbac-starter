@@ -4,6 +4,7 @@ import { Role } from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
 import { ValidationError, validate } from 'class-validator';
 import { UUID } from 'crypto';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 import { UserWithRole } from '../../../prisma/custom-types';
 import { appConfig } from '../../config/config';
@@ -21,6 +22,7 @@ import { UpdateUserDto } from '../dto/update.user.dto';
 import { UpdateUserEntityDto } from '../dto/update.user.entity.dto';
 import { UserMapper } from '../mapper/user.mapper';
 import { Role as RoleEnum } from '../model/role.model';
+import { UserChangeEvent, UserChangeEventType } from '../model/user.change.event';
 import { UserModel } from '../model/user.model';
 import { RoleRepository } from '../repository/role.repository';
 import { UserRepository } from '../repository/user.repository';
@@ -28,6 +30,7 @@ import { UserRepository } from '../repository/user.repository';
 @Injectable()
 export class UserService {
   private logger = new Logger('UserService');
+  private readonly userChangeEventSubject = new BehaviorSubject<UserChangeEvent | null>(null);
 
   constructor(
     private readonly emailService: EmailService,
@@ -36,6 +39,15 @@ export class UserService {
     private readonly roleRepository: RoleRepository,
     private readonly userMapper: UserMapper,
   ) {}
+
+  get userChangeEvent$(): Observable<UserChangeEvent | null> {
+    return this.userChangeEventSubject.asObservable();
+  }
+
+  pushUserChangeEvent(userChangeEvent: UserChangeEvent): void {
+    this.logger.debug(`Pushing user change event: ${JSON.stringify(userChangeEvent)}`);
+    this.userChangeEventSubject.next(userChangeEvent);
+  }
 
   async findAll(getUsersDto: GetUsersDto): Promise<PageModel<UserModel>> {
     const entitiesPageable = await this.userRepository.findAll(getUsersDto);
@@ -159,6 +171,11 @@ export class UserService {
     const userEntityCreated = await this.userRepository.create(email, name, password, roleEntity.id);
     const user = this.userMapper.entityToModel(userEntityCreated);
     this.logger.debug(`User created: ${JSON.stringify(user)}`);
+
+    // Push new user event
+    const event = new UserChangeEvent(UserChangeEventType.CREATE + user.uuid, UserChangeEventType.CREATE, user);
+    this.pushUserChangeEvent(event);
+
     return user;
   }
 
@@ -186,6 +203,10 @@ export class UserService {
     const updatedUserEntity = await this.userRepository.updateById(userId, updateUserEntityDto);
     const user = this.userMapper.entityToModel(updatedUserEntity);
     this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
+
+    // Push new user event
+    const event = new UserChangeEvent(UserChangeEventType.UPDATE + user.uuid, UserChangeEventType.UPDATE, user);
+    this.pushUserChangeEvent(event);
 
     return user;
   }
@@ -233,6 +254,11 @@ export class UserService {
     const updatedUserEntity = await this.userRepository.updateById(userEntity.id, updateUserEntityDto);
     const user = this.userMapper.entityToModel(updatedUserEntity);
     this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
+
+    // Push new user event
+    const event = new UserChangeEvent(UserChangeEventType.UPDATE + user.uuid, UserChangeEventType.UPDATE, user);
+    this.pushUserChangeEvent(event);
+
     return user;
   }
 
@@ -313,6 +339,11 @@ export class UserService {
     const updatedUserEntity = await this.userRepository.updateById(userId, updateUserDto);
     const user = this.userMapper.entityToModel(updatedUserEntity);
     this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
+
+    // Push new user event
+    const event = new UserChangeEvent(UserChangeEventType.UPDATE + user.uuid, UserChangeEventType.UPDATE, user);
+    this.pushUserChangeEvent(event);
+
     return user;
   }
 
@@ -335,6 +366,11 @@ export class UserService {
     const deletedUserEntity = await this.userRepository.deleteById(userEntity.id);
     const user = this.userMapper.entityToModel(deletedUserEntity);
     this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
+
+    // Push new user event
+    const event = new UserChangeEvent(UserChangeEventType.DELETE + user.uuid, UserChangeEventType.DELETE, user);
+    this.pushUserChangeEvent(event);
+
     return user;
   }
 
@@ -380,33 +416,34 @@ export class UserService {
     this.logger.debug(`Users already existing: ${JSON.stringify(userExistingEmails)}`);
 
     // Batch UPDATE
-    const users = await this.batchUpdate(createValidUserDtos, userExistingEntities, userExistingEmails, rolesMap);
+    const createUserDtosToUpdate: CreateUserDto[] = createValidUserDtos.filter((createUserDto) => {
+      return userExistingEmails.includes(createUserDto.email);
+    });
+    const users = await this.batchUpdate(createUserDtosToUpdate, rolesMap);
     this.logger.verbose(`Number of users updated succesfully: ${users.length}`);
 
     // Batch INSERT
-    const rows = await this.batchInsert(createValidUserDtos, userExistingEmails, rolesMap);
+    const createUserDtosToInsert: CreateUserDto[] = createValidUserDtos.filter((createUserDto) => {
+      return !userExistingEmails.includes(createUserDto.email);
+    });
+    const rows = await this.batchInsert(createUserDtosToInsert, rolesMap);
     this.logger.verbose(`Number of users inserted succesfully: ${rows}`);
   }
 
   private async batchUpdate(
-    createValidUserDtos: CreateUserDto[],
-    userExistingEntities: UserWithRole[],
-    userExistingEmails: string[],
+    createUserDtosToUpdate: CreateUserDto[],
     rolesMap: Map<string, Role>,
+    // userExistingEntities: UserWithRole[],
   ): Promise<UserWithRole[]> {
-    const createUserDtosToUpdate: CreateUserDto[] = createValidUserDtos.filter((createUserDto) => {
-      return userExistingEmails.includes(createUserDto.email);
-    });
     this.logger.debug(`Users to update: ${JSON.stringify(createUserDtosToUpdate)}`);
-
     const updateUsersPromises: any[] = [];
-    userExistingEntities.forEach(async (user: UserWithRole) => {
-      const createUserDto = createUserDtosToUpdate.find((u) => u.email === user.email);
-      if (!createUserDto) {
-        this.logger.error(`Cannot find existing user with email ${user.email}`);
-        return;
-      }
 
+    createUserDtosToUpdate.forEach(async (createUserDto: CreateUserDto) => {
+      // const existingUser = userExistingEntities.find((u) => u.email === createUserDto.email);
+      // if (!existingUser) {
+      //   this.logger.error(`Cannot find existing user with email ${createUserDto.email}`);
+      //   return;
+      // }
       const { email, name, role } = createUserDto;
       const roleEntity = rolesMap.get(role);
       if (!roleEntity || !roleEntity.id) {
@@ -428,21 +465,15 @@ export class UserService {
   }
 
   private async batchInsert(
-    createValidUserDtos: CreateUserDto[],
-    userExistingEmails: string[],
+    createUserDtosToInsert: CreateUserDto[],
     rolesMap: Map<string, Role>,
   ): Promise<number> {
-    const createUserDtosToInsert: CreateUserDto[] = createValidUserDtos.filter((createUserDto) => {
-      return !userExistingEmails.includes(createUserDto.email);
-    });
     this.logger.debug(`Users to insert: ${JSON.stringify(createUserDtosToInsert)}`);
-
-    if (createUserDtosToInsert.length > 0) {
-      this.logger.verbose(`Trying to insert ${createUserDtosToInsert.length} users`);
-      return this.userRepository.createMany(createUserDtosToInsert, rolesMap);
-    } else {
+    if (createUserDtosToInsert.length <= 0) {
       return 0;
     }
+    this.logger.verbose(`Trying to insert ${createUserDtosToInsert.length} users`);
+    return this.userRepository.createMany(createUserDtosToInsert, rolesMap);
   }
 
   private generateRandomString(length: number): string {
