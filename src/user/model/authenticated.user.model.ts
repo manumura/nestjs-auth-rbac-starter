@@ -2,6 +2,7 @@ import { Exclude, Expose } from 'class-transformer';
 
 import { ApiProperty } from '@nestjs/swagger';
 import { Role } from './role.model';
+import { UUID } from 'crypto';
 
 @Exclude()
 export class AuthenticatedUserModel {
@@ -11,7 +12,7 @@ export class AuthenticatedUserModel {
 
   @Expose()
   @ApiProperty()
-  public readonly uuid: string;
+  public readonly uuid: UUID;
 
   @Expose()
   @ApiProperty()

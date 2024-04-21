@@ -1,5 +1,12 @@
 import { MultipartFile } from '@fastify/multipart';
-import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
 import { ValidationError, validate } from 'class-validator';
@@ -26,6 +33,7 @@ import { UserChangeEvent, UserChangeEventType } from '../model/user.change.event
 import { UserModel } from '../model/user.model';
 import { RoleRepository } from '../repository/role.repository';
 import { UserRepository } from '../repository/user.repository';
+import { AuthenticatedUserModel } from '../model/authenticated.user.model';
 
 @Injectable()
 export class UserService {
@@ -129,7 +137,7 @@ export class UserService {
     return user;
   }
 
-  async createUser(createUserDto: CreateUserDto): Promise<UserModel> {
+  async createUser(createUserDto: CreateUserDto, currentUser: AuthenticatedUserModel): Promise<UserModel> {
     const { email, name, role } = createUserDto;
     if (!email || !role) {
       throw new BadRequestException('Email or role undefined');
@@ -138,7 +146,7 @@ export class UserService {
     const generatedPassword = uuidv4();
     this.logger.debug(`generatedPassword: ${generatedPassword}`);
 
-    const user = await this.create(email, name, role, generatedPassword);
+    const user = await this.create(email, name, role, generatedPassword, currentUser.uuid);
 
     // Send email with password
     this.logger.verbose(`[EMAIL][REGISTER] Sending email to: ${email}`);
@@ -152,7 +160,13 @@ export class UserService {
     return user;
   }
 
-  private async create(email: string, name: string, role: RoleEnum, password: string): Promise<UserModel> {
+  private async create(
+    email: string,
+    name: string,
+    role: RoleEnum,
+    password: string,
+    currentUserUuid?: UUID,
+  ): Promise<UserModel> {
     const roleEntity = await this.roleRepository.findByName(role);
     if (!roleEntity) {
       throw new NotFoundException(`Role not found by name: ${role}`);
@@ -173,45 +187,57 @@ export class UserService {
     this.logger.debug(`User created: ${JSON.stringify(user)}`);
 
     // Push new user event
-    const event = new UserChangeEvent(UserChangeEventType.CREATE + user.uuid, UserChangeEventType.CREATE, user);
+    const event = new UserChangeEvent(
+      UserChangeEventType.CREATED,
+      user,
+      currentUserUuid,
+    );
     this.pushUserChangeEvent(event);
 
     return user;
   }
 
-  async updateProfileById(userId: number, updateProfileDto: UpdateProfileDto): Promise<UserModel> {
+  async updateProfileById(currentUser: AuthenticatedUserModel, updateProfileDto: UpdateProfileDto): Promise<UserModel> {
     this.logger.debug('Update profile by ID');
     const { name } = updateProfileDto;
-    if (!userId || !name) {
+    if (!currentUser?.id || !name) {
       throw new BadRequestException('User ID or name are undefined');
     }
 
-    this.logger.debug(`Find user by ID: ${userId}`);
+    this.logger.debug(`Find user by ID: ${currentUser.id}`);
     const filterById: FilterUserDto = {
-      id: userId,
+      id: currentUser.id,
     };
     const userEntity = await this.userRepository.findOne(filterById);
     this.logger.debug(`User found: ${JSON.stringify(userEntity)}`);
     if (!userEntity) {
-      throw new NotFoundException(`User not found with ID: ${userId}`);
+      throw new NotFoundException(`User not found with ID: ${currentUser.id}`);
     }
 
     const updateUserEntityDto: UpdateUserEntityDto = {
       name,
     };
 
-    const updatedUserEntity = await this.userRepository.updateById(userId, updateUserEntityDto);
+    const updatedUserEntity = await this.userRepository.updateById(currentUser.id, updateUserEntityDto);
     const user = this.userMapper.entityToModel(updatedUserEntity);
     this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
 
     // Push new user event
-    const event = new UserChangeEvent(UserChangeEventType.UPDATE + user.uuid, UserChangeEventType.UPDATE, user);
+    const event = new UserChangeEvent(
+      UserChangeEventType.UPDATED,
+      user,
+      currentUser.uuid,
+    );
     this.pushUserChangeEvent(event);
 
     return user;
   }
 
-  async updateUserByUuid(userUuid: UUID, updateUserDto: UpdateUserDto): Promise<UserModel> {
+  async updateUserByUuid(
+    userUuid: UUID,
+    updateUserDto: UpdateUserDto,
+    currentUser: AuthenticatedUserModel,
+  ): Promise<UserModel> {
     this.logger.debug('Update user by UUID');
     const { email, password, name, active, role } = updateUserDto;
     if (!userUuid) {
@@ -256,27 +282,34 @@ export class UserService {
     this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
 
     // Push new user event
-    const event = new UserChangeEvent(UserChangeEventType.UPDATE + user.uuid, UserChangeEventType.UPDATE, user);
+    const event = new UserChangeEvent(
+      UserChangeEventType.UPDATED,
+      user,
+      currentUser.uuid,
+    );
     this.pushUserChangeEvent(event);
 
     return user;
   }
 
-  async updatePasswordByUserId(userId: number, updatePasswordDto: UpdatePasswordDto): Promise<UserModel> {
+  async updatePasswordByUserId(
+    currentUser: AuthenticatedUserModel,
+    updatePasswordDto: UpdatePasswordDto,
+  ): Promise<UserModel> {
     this.logger.debug('Update password by user ID');
     const { oldPassword, newPassword } = updatePasswordDto;
-    if (!userId || !oldPassword || !newPassword) {
+    if (!currentUser.id || !oldPassword || !newPassword) {
       throw new BadRequestException('User ID or password are undefined');
     }
 
-    this.logger.debug(`Find user by ID: ${userId}`);
+    this.logger.debug(`Find user by ID: ${currentUser.id}`);
     const filterById: FilterUserDto = {
-      id: userId,
+      id: currentUser.id,
     };
     const userEntity = await this.userRepository.findOne(filterById);
     this.logger.debug(`User found: ${JSON.stringify(userEntity)}`);
     if (!userEntity) {
-      throw new NotFoundException(`User not found with ID: ${userId}`);
+      throw new NotFoundException(`User not found with ID: ${currentUser.id}`);
     }
 
     const isValidPassword = await this.userRepository.isPasswordValid(oldPassword, userEntity.password);
@@ -288,28 +321,28 @@ export class UserService {
       password: newPassword,
     };
 
-    const updatedUserEntity = await this.userRepository.updateById(userId, updateUserEntityDto);
+    const updatedUserEntity = await this.userRepository.updateById(currentUser.id, updateUserEntityDto);
     const user = this.userMapper.entityToModel(updatedUserEntity);
     this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
 
     return user;
   }
 
-  async updateImageByUserId(userId: number, file: MultipartFile): Promise<UserModel> {
+  async updateImageByUserId(currentUser: AuthenticatedUserModel, file: MultipartFile): Promise<UserModel> {
     this.logger.debug('Update user image by user ID');
 
-    if (!userId) {
+    if (!currentUser?.id) {
       throw new BadRequestException('User ID undefined');
     }
 
-    this.logger.debug(`Find user by ID: ${userId}`);
+    this.logger.debug(`Find user by ID: ${currentUser.id}`);
     const filterById: FilterUserDto = {
-      id: userId,
+      id: currentUser.id,
     };
     const userEntity = await this.userRepository.findOne(filterById);
     this.logger.debug(`User found: ${JSON.stringify(userEntity)}`);
     if (!userEntity) {
-      throw new NotFoundException(`User not found with ID: ${userId}`);
+      throw new NotFoundException(`User not found with ID: ${currentUser.id}`);
     }
 
     // Delete previous image
@@ -336,18 +369,22 @@ export class UserService {
       imageUrl: uploadResponse.secure_url,
     };
 
-    const updatedUserEntity = await this.userRepository.updateById(userId, updateUserDto);
+    const updatedUserEntity = await this.userRepository.updateById(currentUser.id, updateUserDto);
     const user = this.userMapper.entityToModel(updatedUserEntity);
     this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
 
     // Push new user event
-    const event = new UserChangeEvent(UserChangeEventType.UPDATE + user.uuid, UserChangeEventType.UPDATE, user);
+    const event = new UserChangeEvent(
+      UserChangeEventType.UPDATED,
+      user,
+      currentUser.uuid,
+    );
     this.pushUserChangeEvent(event);
 
     return user;
   }
 
-  async deleteById(userUuid: UUID): Promise<UserModel> {
+  async deleteById(userUuid: UUID, currentUser: AuthenticatedUserModel): Promise<UserModel> {
     this.logger.debug('Delete user by UUID');
     if (!userUuid) {
       throw new BadRequestException('User UUID undefined');
@@ -368,7 +405,11 @@ export class UserService {
     this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
 
     // Push new user event
-    const event = new UserChangeEvent(UserChangeEventType.DELETE + user.uuid, UserChangeEventType.DELETE, user);
+    const event = new UserChangeEvent(
+      UserChangeEventType.DELETED,
+      user,
+      currentUser.uuid,
+    );
     this.pushUserChangeEvent(event);
 
     return user;
@@ -464,10 +505,7 @@ export class UserService {
     return usersUpdated;
   }
 
-  private async batchInsert(
-    createUserDtosToInsert: CreateUserDto[],
-    rolesMap: Map<string, Role>,
-  ): Promise<number> {
+  private async batchInsert(createUserDtosToInsert: CreateUserDto[], rolesMap: Map<string, Role>): Promise<number> {
     this.logger.debug(`Users to insert: ${JSON.stringify(createUserDtosToInsert)}`);
     if (createUserDtosToInsert.length <= 0) {
       return 0;

@@ -1,21 +1,33 @@
 import { MessageEvent } from '@nestjs/common';
 import { UserModel } from './user.model';
+import { UUID } from 'crypto';
 
 export class UserChangeEvent implements MessageEvent {
     id?: string;
     type?: UserChangeEventType;
     retry?: number;
-    data: UserModel;
+    data: UserEventModel;
 
-    constructor(id: string, type: UserChangeEventType, data: UserModel) {
-        this.id = id;
+    constructor(type: UserChangeEventType, user: UserModel, auditUserUuid?: UUID, retry?: number) {
+        this.id = type + '-' + user.uuid;
         this.type = type;
-        this.data = data;
+        this.data = new UserEventModel(user, auditUserUuid);
+        this.retry = retry;
+    }
+}
+
+export class UserEventModel {
+    user: UserModel;
+    auditUserUuid?: UUID;
+
+    constructor(user: UserModel, auditUserUuid?: UUID) {
+        this.user = user;
+        this.auditUserUuid = auditUserUuid;
     }
 }
 
 export enum UserChangeEventType {
-    CREATE = 'CREATE',
-    UPDATE = 'UPDATE',
-    DELETE = 'DELETE',
+    CREATED = 'USER_CREATED',
+    UPDATED = 'USER_UPDATED',
+    DELETED = 'USER_DELETED',
 }

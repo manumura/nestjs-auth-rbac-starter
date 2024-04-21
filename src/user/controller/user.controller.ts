@@ -5,25 +5,34 @@ import {
   Get,
   Logger,
   Param,
-  ParseUUIDPipe, Post, Put,
-  Query, Sse, UseGuards, ValidationPipe
+  ParseUUIDPipe,
+  Post,
+  Put,
+  Query,
+  Sse,
+  UseGuards,
+  ValidationPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import {
   ApiBadRequestResponse,
-  ApiBearerAuth, ApiCreatedResponse, ApiForbiddenResponse,
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
   ApiOkResponse,
-  ApiUnauthorizedResponse
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { UUID } from 'crypto';
 import { Observable } from 'rxjs';
 import { RolesGuard } from '../../authentication/guard/roles.guard';
 import { UserActiveGuard } from '../../authentication/guard/user.active.guard';
+import { GetUser } from '../../shared/decorator/get-user.decorator';
 import { Roles } from '../../shared/decorator/roles.decorator';
 import { PageModel } from '../../shared/model/page.model';
 import { CreateUserDto } from '../dto/create.user.dto';
 import { GetUsersDto } from '../dto/get.users.dto';
 import { UpdateUserDto } from '../dto/update.user.dto';
+import { AuthenticatedUserModel } from '../model/authenticated.user.model';
 import { Role } from '../model/role.model';
 import { UserChangeEvent } from '../model/user.change.event';
 import { UserModel } from '../model/user.model';
@@ -47,9 +56,12 @@ export class UserController {
     type: UserModel,
   })
   @ApiBadRequestResponse({ description: 'Validation failed' })
-  createUser(@Body(ValidationPipe) userData: CreateUserDto): Promise<UserModel> {
+  createUser(
+    @Body(ValidationPipe) userData: CreateUserDto,
+    @GetUser() currentUser: AuthenticatedUserModel,
+  ): Promise<UserModel> {
     this.logger.log(`Create user with email ${userData.email}`);
-    return this.userService.createUser(userData);
+    return this.userService.createUser(userData, currentUser);
   }
 
   @Get('/v1/users')
@@ -86,9 +98,10 @@ export class UserController {
   updateUserByUuid(
     @Param('uuid', ParseUUIDPipe) uuid: UUID,
     @Body(ValidationPipe) updateUserDto: UpdateUserDto,
+    @GetUser() currentUser: AuthenticatedUserModel,
   ): Promise<UserModel> {
     this.logger.log(`Update user with UUID ${uuid}`);
-    return this.userService.updateUserByUuid(uuid, updateUserDto);
+    return this.userService.updateUserByUuid(uuid, updateUserDto, currentUser);
   }
 
   @Delete('/v1/users/:uuid')
@@ -98,9 +111,12 @@ export class UserController {
   @ApiUnauthorizedResponse()
   @ApiForbiddenResponse()
   @ApiOkResponse({ type: UserModel })
-  deleteUserByUuid(@Param('uuid', ParseUUIDPipe) uuid: UUID): Promise<UserModel> {
+  deleteUserByUuid(
+    @Param('uuid', ParseUUIDPipe) uuid: UUID,
+    @GetUser() currentUser: AuthenticatedUserModel,
+  ): Promise<UserModel> {
     this.logger.log(`Delete user with UUID ${uuid}`);
-    return this.userService.deleteById(uuid);
+    return this.userService.deleteById(uuid, currentUser);
   }
 
   @Sse('/v1/events/users')
@@ -111,7 +127,7 @@ export class UserController {
   @ApiForbiddenResponse()
   @ApiOkResponse({ type: Observable<UserChangeEvent> })
   streamUserChangeEvents(): Observable<UserChangeEvent | null> {
-    this.logger.log('Subscribe to user change events');
+    // this.logger.log('Subscribe to user change events');
     return this.userService.userChangeEvent$;
   }
 }

@@ -44,9 +44,9 @@ export class ProfileController {
   @ApiUnauthorizedResponse()
   @ApiForbiddenResponse()
   @ApiOkResponse({ type: UserModel })
-  getProfile(@GetUser() user: AuthenticatedUserModel): UserModel {
-    this.logger.log(`Get profile for user with email ${user.email}`);
-    return this.userMapper.authenticatedUserModelToUserModel(user);
+  getProfile(@GetUser() currentUser: AuthenticatedUserModel): UserModel {
+    this.logger.log(`Get profile for user with email ${currentUser.email}`);
+    return this.userMapper.authenticatedUserModelToUserModel(currentUser);
   }
 
   @Put('/v1/profile')
@@ -58,13 +58,13 @@ export class ProfileController {
   @ApiBadRequestResponse({ description: 'Validation failed' })
   updateProfile(
     @Body(ValidationPipe) updateProfileDto: UpdateProfileDto,
-    @GetUser() user: AuthenticatedUserModel,
+    @GetUser() currentUser: AuthenticatedUserModel,
   ): Promise<UserModel> {
-    this.logger.log(`Update profile for user with email ${user.email}`);
-    if (!user.id) {
+    this.logger.log(`Update profile for user with email ${currentUser.email}`);
+    if (!currentUser?.id) {
       throw new BadRequestException('User ID is required');
     }
-    return this.userService.updateProfileById(user.id, updateProfileDto);
+    return this.userService.updateProfileById(currentUser, updateProfileDto);
   }
 
   @Put('/v1/profile/password')
@@ -76,13 +76,13 @@ export class ProfileController {
   @ApiBadRequestResponse({ description: 'Validation failed' })
   updatePassword(
     @Body(ValidationPipe) updatePasswordDto: UpdatePasswordDto,
-    @GetUser() user: AuthenticatedUserModel,
+    @GetUser() currentUser: AuthenticatedUserModel,
   ): Promise<UserModel> {
-    this.logger.log(`Update password for user with email ${user.email}`);
-    if (!user.id) {
+    this.logger.log(`Update password for user with email ${currentUser.email}`);
+    if (!currentUser?.id) {
       throw new BadRequestException('User ID is required');
     }
-    return this.userService.updatePasswordByUserId(user.id, updatePasswordDto);
+    return this.userService.updatePasswordByUserId(currentUser, updatePasswordDto);
   }
 
   @Put('/v1/profile/image')
@@ -94,9 +94,9 @@ export class ProfileController {
   @ApiForbiddenResponse()
   @ApiOkResponse({ type: UserModel })
   @ApiBadRequestResponse({ description: 'Validation failed' })
-  async updateProfileImage(@Req() req: FastifyRequest, @GetUser() user: AuthenticatedUserModel): Promise<UserModel> {
-    this.logger.log(`Update profile image for user with email ${user.email}`);
-    if (!user.id) {
+  async updateProfileImage(@Req() req: FastifyRequest, @GetUser() currentUser: AuthenticatedUserModel): Promise<UserModel> {
+    this.logger.log(`Update profile image for user with email ${currentUser.email}`);
+    if (!currentUser?.id) {
       throw new BadRequestException('User ID is required');
     }
 
@@ -110,6 +110,6 @@ export class ProfileController {
       throw new BadRequestException('File not found');
     }
 
-    return this.userService.updateImageByUserId(user.id, file);
+    return this.userService.updateImageByUserId(currentUser, file);
   }
 }
