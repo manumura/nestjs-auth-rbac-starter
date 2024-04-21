@@ -1,6 +1,7 @@
 import { MessageEvent } from '@nestjs/common';
 import { UserModel } from './user.model';
 import { UUID } from 'crypto';
+import moment from 'moment';
 
 export class UserChangeEvent implements MessageEvent {
     id?: string;
@@ -9,7 +10,8 @@ export class UserChangeEvent implements MessageEvent {
     data: UserEventModel;
 
     constructor(type: UserChangeEventType, user: UserModel, auditUserUuid?: UUID, retry?: number) {
-        this.id = type + '-' + user.uuid;
+        const d = moment(user.updatedAt).utc().format('YYYY-MM-DDTHH:mm:ssZ');
+        this.id = type + '-' + user.uuid + '-' + d;
         this.type = type;
         this.data = new UserEventModel(user, auditUserUuid);
         this.retry = retry;
