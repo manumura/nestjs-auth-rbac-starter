@@ -34,6 +34,8 @@ import { UserModel } from '../model/user.model';
 import { RoleRepository } from '../repository/role.repository';
 import { UserRepository } from '../repository/user.repository';
 import { AuthenticatedUserModel } from '../model/authenticated.user.model';
+import { UploadResponseModel } from '../../shared/model/upload.response.model';
+import { UploadApiResponse } from 'cloudinary';
 
 @Injectable()
 export class UserService {
@@ -345,23 +347,39 @@ export class UserService {
       throw new NotFoundException(`User not found with ID: ${currentUser.id}`);
     }
 
-    // Delete previous image
-    if (userEntity.imageId) {
-      await this.storageService.delete(userEntity.imageId);
-    }
-
     const saveResponse = await this.storageService.saveImageToLocalPath(file);
     if (!saveResponse) {
       throw new InternalServerErrorException('Error while saving file');
     }
+    
+    const user = await this.uploadAndUpdateImage(userEntity, saveResponse);
+    return user;
+  }
 
+  private async uploadAndUpdateImage(userEntity: UserWithRole, saveResponse: UploadResponseModel): Promise<UserModel> {
+    const uploadResponse = await this.upload(userEntity, saveResponse);
+    const user = await this.updateImage(userEntity, uploadResponse);
+    return user;
+  }
+
+  private async upload(userEntity: UserWithRole, saveResponse: UploadResponseModel): Promise<UploadApiResponse> {
     this.logger.verbose(`Uploading file: ${saveResponse.filename}`);
     const uploadResponse = await this.storageService.uploadProfileImage(saveResponse.filepath, userEntity.uuid);
     this.logger.verbose(`Upload result: ${JSON.stringify(uploadResponse)}`);
+
     this.storageService.deleteFromLocalPath(saveResponse.filepath);
 
     if (!uploadResponse?.public_id || !uploadResponse?.secure_url) {
       throw new BadRequestException('Image ID or image URL undefined');
+    }
+
+    return uploadResponse;
+  }
+
+  private async updateImage(userEntity: UserWithRole, uploadResponse: UploadApiResponse): Promise<UserModel> {
+    // Delete previous image
+    if (userEntity.imageId) {
+      await this.storageService.delete(userEntity.imageId);
     }
 
     const updateUserDto: UpdateUserEntityDto = {
@@ -369,7 +387,7 @@ export class UserService {
       imageUrl: uploadResponse.secure_url,
     };
 
-    const updatedUserEntity = await this.userRepository.updateById(currentUser.id, updateUserDto);
+    const updatedUserEntity = await this.userRepository.updateById(userEntity.id, updateUserDto);
     const user = this.userMapper.entityToModel(updatedUserEntity);
     this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
 
@@ -377,7 +395,7 @@ export class UserService {
     const event = new UserChangeEvent(
       UserChangeEventType.UPDATED,
       user,
-      currentUser.uuid,
+      userEntity.uuid as UUID,
     );
     this.pushUserChangeEvent(event);
 

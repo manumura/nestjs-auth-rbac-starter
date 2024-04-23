@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
 
-const authenticationTokenWithUser = Prisma.validator<Prisma.AuthenticationTokenArgs>()({
+const authenticationTokenWithUser = Prisma.validator<Prisma.AuthenticationTokenDefaultArgs>()({
   include: {
     user: {
       include: {
@@ -12,7 +12,7 @@ const authenticationTokenWithUser = Prisma.validator<Prisma.AuthenticationTokenA
 
 export type AuthenticationTokenWithUser = Prisma.AuthenticationTokenGetPayload<typeof authenticationTokenWithUser>;
 
-const userWithRole = Prisma.validator<Prisma.UserArgs>()({
+const userWithRole = Prisma.validator<Prisma.UserDefaultArgs>()({
   include: {
     role: true,
   },
