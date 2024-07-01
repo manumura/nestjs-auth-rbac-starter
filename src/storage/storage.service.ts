@@ -60,7 +60,7 @@ export class StorageService {
   }
 
   async saveImageToLocalPath(multipartFile: MultipartFile): Promise<UploadResponseModel | null> {
-    return this.saveToLocalPath(multipartFile, /(jpg|jpeg|png|gif)$/, 'File is not an image');
+    return this.saveToLocalPath(multipartFile, /(jpg|jpeg|png|gif)$/, 'File should be an image with extension jpg, jpeg, png or gif');
   }
 
   private async saveToLocalPath(multipartFile: MultipartFile, mimeTypesRegex?: any, validationErrorMessage?: string): Promise<UploadResponseModel | null> {
