@@ -48,6 +48,7 @@ export class AuthenticationController {
   @HttpCode(200)
   @ApiOkResponse({ type: LoginModel })
   @ApiBadRequestResponse({ description: 'Validation failed' })
+  // https://docs.nestjs.com/techniques/cookies
   async login(@Body(ValidationPipe) loginData: LoginDto, @Res({ passthrough: true }) response: FastifyReply): Promise<LoginModel> {
     this.logger.log(`Login user with email ${loginData.email}`);
     const login = await this.authenticationService.login(loginData);

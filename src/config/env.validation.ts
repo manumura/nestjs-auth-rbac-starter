@@ -6,6 +6,7 @@ export function validateEnv() {
   cleanEnv(appConfig, {
     NODE_ENV: str(),
     COOKIE_SECRET: str(),
+    RECAPTCHA_SECRET_KEY: str(),
     ID_TOKEN_PRIVATE_KEY: str(),
     CORS_ALLOWED_ORIGNS: str(),
     DOMAIN: str(),

@@ -19,6 +19,7 @@ import { IsResetPasswordTokenValidConstraint } from './validation/IsResetPasswor
 import { JwtModule } from '@nestjs/jwt';
 import { appConfig } from '../config/config';
 import { StorageService } from '../storage/storage.service';
+import { CaptchaController } from './controller/captcha.controller';
 
 @Module({
   imports: [
@@ -32,7 +33,7 @@ import { StorageService } from '../storage/storage.service';
     } }),
     PassportModule.register({ defaultStrategy: 'custom' }),
   ],
-  controllers: [IndexController, AuthenticationController, ResetPasswordController],
+  controllers: [IndexController, AuthenticationController, ResetPasswordController, CaptchaController],
   providers: [
     PrismaService,
     AuthenticationService,
