@@ -33,7 +33,7 @@
     "@nestjs/platform-fastify": "^10.3.10",
     "@nestjs/swagger": "^7.4.0",
     "@prisma/client": "^5.16.2",
-    "axios": "^1.7.2",
+    "axios": "^1.7.4",
     "bcrypt": "^5.1.1",
     "bfj": "^8.0.0",
     "class-transformer": "^0.5.1",
