@@ -47,7 +47,7 @@ export class ResetPasswordService {
     return user;
   }
 
-  async createToken(forgotPasswordDto: ForgotPasswordDto): Promise<ResetPasswordTokenModel> {
+  async createToken(forgotPasswordDto: ForgotPasswordDto): Promise<ResetPasswordTokenModel | null> {
     const { email } = forgotPasswordDto;
     if (!email) {
       throw new BadRequestException('Email cannot be undefined');
@@ -59,7 +59,9 @@ export class ResetPasswordService {
     const userEntity = await this.userRepository.findOne(filterByEmail);
     this.logger.debug(`User found: ${JSON.stringify(userEntity)}`);
     if (!userEntity) {
-      throw new NotFoundException(`User with email ${email} not found`);
+      // Dont throw error to not reveal email is not found
+      this.logger.warn(`User with email ${email} not found`);
+      return null;
     }
 
     const resetPasswordTokenCreated = await this.resetPasswordTokenRepository.generate(userEntity.id);

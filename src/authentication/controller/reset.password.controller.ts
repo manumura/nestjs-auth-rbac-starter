@@ -21,9 +21,9 @@ export class ResetPasswordController {
   async forgotPassword(@Body(ValidationPipe) forgotPasswordDto: ForgotPasswordDto): Promise<MessageModel> {
     this.logger.log(`Forgot password for user with email ${forgotPasswordDto.email}`);
     const resetPasswordTokenModel = await this.resetPasswordService.createToken(forgotPasswordDto);
-    const message = resetPasswordTokenModel ? 'success' : 'failed';
+    this.logger.log(`Reset password token created: ${JSON.stringify(resetPasswordTokenModel)}`);
     return {
-      message,
+      message: 'success',
     };
   }
 
