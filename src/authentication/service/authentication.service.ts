@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
-  UnauthorizedException
+  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import bfj from 'bfj';
@@ -127,17 +127,18 @@ export class AuthenticationService {
       refreshToken,
     };
 
-    this.logger.debug(
-      `Access token created for user ID ${userEntity.id}: ${JSON.stringify(tokenModel)}`,
-    );
+    this.logger.debug(`Access token created for user ID ${userEntity.id}: ${JSON.stringify(tokenModel)}`);
     return tokenModel;
   }
 
   private generateIdToken(user: UserModel): string {
-    return this.jwtService.sign({ user }, {
-      // subject: user.id,
-      expiresIn: appConfig.ID_TOKEN_EXPIRES_IN_AS_SECONDS,
-    });
+    return this.jwtService.sign(
+      { user },
+      {
+        // subject: user.id,
+        expiresIn: appConfig.ID_TOKEN_EXPIRES_IN_AS_SECONDS,
+      },
+    );
   }
 
   private getAccessTokenExpiryDate(): Date {

@@ -76,11 +76,7 @@ export class ResetPasswordService {
     this.emailService
       .sendResetPasswordEmail(userEntity.email, 'en', resetPasswordTokenModelCreated.token)
       .then((result) => {
-        this.logger.verbose(
-          `[EMAIL][RESET_PWD] Result Sending email to USER: ${JSON.stringify(
-            result,
-          )}`,
-        );
+        this.logger.verbose(`[EMAIL][RESET_PWD] Result Sending email to USER: ${JSON.stringify(result)}`);
       })
       .catch((err) => this.logger.error(err));
     return resetPasswordTokenModelCreated;

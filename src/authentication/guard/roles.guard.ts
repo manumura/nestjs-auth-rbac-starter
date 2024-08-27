@@ -23,7 +23,7 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException('User or role undefined');
     }
 
-    const hasRole = () => roles.some(role => user.role === role);
+    const hasRole = () => roles.some((role) => user.role === role);
     const canActivate = user && user.role && hasRole();
 
     if (!canActivate) {

@@ -5,9 +5,7 @@ import { Role as RoleEnum } from '../model/role.model';
 
 @Injectable()
 export class RoleRepository {
-  constructor(
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async findByName(role: RoleEnum): Promise<Role | null> {
     return this.prisma.role.findUnique({

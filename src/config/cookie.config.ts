@@ -1,4 +1,3 @@
-
 import type { CookieSerializeOptions } from '@fastify/cookie';
 import { appConfig } from './config';
 

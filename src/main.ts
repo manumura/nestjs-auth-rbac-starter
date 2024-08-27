@@ -14,8 +14,8 @@ import { validateEnv } from './config/env.validation';
 import { loggerOptions } from './config/logger.config';
 import { HttpExceptionFilter } from './shared/filter/http-exception-filter';
 import { UserModule } from './user/user.module';
-import cluster from "cluster";
-import * as process from "node:process";
+import cluster from 'cluster';
+import * as process from 'node:process';
 
 // TODO session in redis https://blog.logrocket.com/add-redis-cache-nestjs-app/
 async function bootstrap() {
@@ -30,15 +30,15 @@ async function bootstrap() {
 
   await app.register(helmet);
   // Fastify file upload
-  const options = { 
-    limits: { 
+  const options = {
+    limits: {
       fieldNameSize: 100, // Max field name size in bytes
       fieldSize: 1000000, // Max field value size in bytes
       fields: 10, // Max number of non-file fields
       fileSize: 100000000, // For multipart forms, the max file size
       files: 1, // Max number of file fields
       headerPairs: 2000, // Max number of header key=>value pairs
-    } 
+    },
   };
   await app.register(multipart, options);
   // await app.register(multipart);
@@ -94,7 +94,7 @@ async function bootstrap() {
 // Run in cluster mode
 function clusterize(callback: Function): void {
   const logger = new Logger('clusterize');
-  const numCPUs = parseInt(process.argv[2] || "1");
+  const numCPUs = parseInt(process.argv[2] || '1');
 
   if (!cluster.isPrimary) {
     return callback();
@@ -106,7 +106,7 @@ function clusterize(callback: Function): void {
     cluster.fork();
   }
 
-  cluster.on("exit", (worker, code, signal) => {
+  cluster.on('exit', (worker, code, signal) => {
     console.log(`worker ${worker.process.pid} died`);
   });
 }

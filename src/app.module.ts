@@ -9,13 +9,7 @@ import { StorageModule } from './storage/storage.module';
 import { UserModule } from './user/user.module';
 
 @Module({
-  imports: [
-    WinstonModule.forRoot(loggerOptions),
-    UserModule,
-    AuthenticationModule,
-    NotificationModule,
-    StorageModule,
-  ],
+  imports: [WinstonModule.forRoot(loggerOptions), UserModule, AuthenticationModule, NotificationModule, StorageModule],
 })
 export class AppModule {
   constructor() {

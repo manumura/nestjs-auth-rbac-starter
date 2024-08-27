@@ -1,7 +1,7 @@
 import globals from 'globals';
 import pluginJs from '@eslint/js';
 import tseslint from 'typescript-eslint';
-import eslintConfigPrettier from 'eslint-config-prettier';
+import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 
 export default [
   { files: ['**/*.{js,mjs,cjs,ts}'] },
@@ -15,7 +15,13 @@ export default [
       '@typescript-eslint/no-unused-vars': ['warn'],
       'no-duplicate-imports': ['error'],
       semi: ['warn', 'always'],
+      'prettier/prettier': [
+        'error',
+        {
+          endOfLine: 'auto',
+        },
+      ],
     },
   },
-  eslintConfigPrettier,
+  eslintPluginPrettierRecommended,
 ];

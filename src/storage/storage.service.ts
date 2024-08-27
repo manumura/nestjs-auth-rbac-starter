@@ -47,7 +47,7 @@ export class StorageService {
       if (error) {
         this.logger.error(`Delete image failed: ${JSON.stringify(error)}`);
       }
-      
+
       if (result) {
         this.logger.verbose(`Delete file by public ID: ${publicId} result: ${JSON.stringify(result)}`);
       }
@@ -60,10 +60,18 @@ export class StorageService {
   }
 
   async saveImageToLocalPath(multipartFile: MultipartFile): Promise<UploadResponseModel | null> {
-    return this.saveToLocalPath(multipartFile, /(jpg|jpeg|png|gif)$/, 'File should be an image with extension jpg, jpeg, png or gif');
+    return this.saveToLocalPath(
+      multipartFile,
+      /(jpg|jpeg|png|gif)$/,
+      'File should be an image with extension jpg, jpeg, png or gif',
+    );
   }
 
-  private async saveToLocalPath(multipartFile: MultipartFile, mimeTypesRegex?: any, validationErrorMessage?: string): Promise<UploadResponseModel | null> {
+  private async saveToLocalPath(
+    multipartFile: MultipartFile,
+    mimeTypesRegex?: any,
+    validationErrorMessage?: string,
+  ): Promise<UploadResponseModel | null> {
     // https://backend.cafe/fastify-multipart-upload
     this.logger.verbose(`File received: ${multipartFile.filename} (${multipartFile.mimetype})`);
     if (mimeTypesRegex && !multipartFile.mimetype.match(mimeTypesRegex)) {
@@ -90,14 +98,11 @@ export class StorageService {
     fsAsync
       .unlink(filePath)
       .then(() => this.logger.verbose(`File deleted successfully ${filePath}`))
-      .catch(error => this.logger.error(`Error while deleting file ${filePath}: ${error}`));
+      .catch((error) => this.logger.error(`Error while deleting file ${filePath}: ${error}`));
   }
 
   readFile(filepath: string, transform: Transform, onData: (data) => Promise<void>, onEnd: () => Promise<void>) {
-    fs.createReadStream(filepath)
-      .pipe(transform)
-      .on('data', onData)
-      .on('end', onEnd);
+    fs.createReadStream(filepath).pipe(transform).on('data', onData).on('end', onEnd);
   }
 
   private renameFile(filename: string) {

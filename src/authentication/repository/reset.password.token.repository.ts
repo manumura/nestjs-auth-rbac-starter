@@ -9,20 +9,20 @@ import { appConfig } from '../../config/config';
 export class ResetPasswordTokenRepository {
   private logger = new Logger('ResetPasswordTokenRepository');
 
-  constructor(
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async generate(userId: number): Promise<ResetPasswordToken> {
     // Transaction : remove existing token + create new token
     // https://github.com/prisma/prisma/issues/4072
     const token = await this.prisma.$transaction(async (tx) => {
       this.logger.debug('Begin transaction: remove existing token');
-      await tx.resetPasswordToken.delete({
-        where: {
-          userId,
-        },
-      }).catch(err => this.logger.error(err));
+      await tx.resetPasswordToken
+        .delete({
+          where: {
+            userId,
+          },
+        })
+        .catch((err) => this.logger.error(err));
 
       this.logger.debug('Create new token');
       const data = {
@@ -44,7 +44,9 @@ export class ResetPasswordTokenRepository {
 
   private getExpiryDate(): Date {
     const now = moment().utc();
-    const expiry = appConfig.RESET_PASSWORD_TOKEN_EXPIRY_DURATION_IN_HOURS ? appConfig.RESET_PASSWORD_TOKEN_EXPIRY_DURATION_IN_HOURS : 24;
+    const expiry = appConfig.RESET_PASSWORD_TOKEN_EXPIRY_DURATION_IN_HOURS
+      ? appConfig.RESET_PASSWORD_TOKEN_EXPIRY_DURATION_IN_HOURS
+      : 24;
     return now.add(expiry, 'hours').toDate();
   }
 }

@@ -12,10 +12,8 @@ import { UserService } from './service/user.service';
 import { IsUserEmailAlreadyExistConstraint } from './validation/IsUserEmailAlreadyExist';
 
 @Module({
-  imports: [
-    PassportModule.register({ defaultStrategy: 'custom' }),
-  ],
-  controllers: [UserController, ProfileController,],
+  imports: [PassportModule.register({ defaultStrategy: 'custom' })],
+  controllers: [UserController, ProfileController],
   providers: [
     PrismaService,
     UserService,

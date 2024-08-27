@@ -7,7 +7,6 @@ import { AuthenticatedUserModel } from '../model/authenticated.user.model';
 
 @Injectable()
 export class UserMapper {
-
   public entitiesToModels(entities: UserWithRole[]): UserModel[] {
     if (!entities) {
       return [];

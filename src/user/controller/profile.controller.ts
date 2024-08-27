@@ -94,7 +94,10 @@ export class ProfileController {
   @ApiForbiddenResponse()
   @ApiOkResponse({ type: UserModel })
   @ApiBadRequestResponse({ description: 'Validation failed' })
-  async updateProfileImage(@Req() req: FastifyRequest, @GetUser() currentUser: AuthenticatedUserModel): Promise<UserModel> {
+  async updateProfileImage(
+    @Req() req: FastifyRequest,
+    @GetUser() currentUser: AuthenticatedUserModel,
+  ): Promise<UserModel> {
     this.logger.log(`Update profile image for user with email ${currentUser.email}`);
     if (!currentUser?.id) {
       throw new BadRequestException('User ID is required');

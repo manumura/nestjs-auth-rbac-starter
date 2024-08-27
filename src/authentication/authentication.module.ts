@@ -25,12 +25,13 @@ import { CaptchaController } from './controller/captcha.controller';
   imports: [
     JwtModule.register({
       // https://gist.github.com/ygotthilf/baa58da5c3dd1f69fae9
-      privateKey: appConfig.ID_TOKEN_PRIVATE_KEY, 
+      privateKey: appConfig.ID_TOKEN_PRIVATE_KEY,
       // publicKey: appConfig.ID_TOKEN_PUBLIC_KEY,
       signOptions: {
-      algorithm: 'RS256',
-      issuer: 'myapp',
-    } }),
+        algorithm: 'RS256',
+        issuer: 'myapp',
+      },
+    }),
     PassportModule.register({ defaultStrategy: 'custom' }),
   ],
   controllers: [IndexController, AuthenticationController, ResetPasswordController, CaptchaController],

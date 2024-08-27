@@ -5,7 +5,6 @@ import { ResetPasswordTokenModel } from '../model/reset.password.token.model';
 
 @Injectable()
 export class ResetPasswordTokenMapper {
-
   public entityToModel(entity: ResetPasswordToken): ResetPasswordTokenModel {
     const model = plainToInstance(ResetPasswordTokenModel, entity);
     return model;

@@ -5,7 +5,7 @@ import {
   ApiCreatedResponse,
   ApiForbiddenResponse,
   ApiOkResponse,
-  ApiUnauthorizedResponse
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { FastifyReply } from 'fastify';
 import { appConstants } from '../../app.constants';
@@ -22,7 +22,6 @@ import { UserActiveGuard } from '../guard/user.active.guard';
 import { LoginModel } from '../model/login.model';
 import { AuthenticationService } from '../service/authentication.service';
 import { AuthenticatedUserModel } from '../../user/model/authenticated.user.model';
-
 
 @Controller()
 export class AuthenticationController {
@@ -49,7 +48,10 @@ export class AuthenticationController {
   @ApiOkResponse({ type: LoginModel })
   @ApiBadRequestResponse({ description: 'Validation failed' })
   // https://docs.nestjs.com/techniques/cookies
-  async login(@Body(ValidationPipe) loginData: LoginDto, @Res({ passthrough: true }) response: FastifyReply): Promise<LoginModel> {
+  async login(
+    @Body(ValidationPipe) loginData: LoginDto,
+    @Res({ passthrough: true }) response: FastifyReply,
+  ): Promise<LoginModel> {
     this.logger.log(`Login user with email ${loginData.email}`);
     const login = await this.authenticationService.login(loginData);
     setAuthCookies(response, login);
@@ -63,7 +65,10 @@ export class AuthenticationController {
   @ApiUnauthorizedResponse()
   @ApiForbiddenResponse()
   @ApiOkResponse({ type: UserModel })
-  async logout(@GetUser() user: AuthenticatedUserModel, @Res({ passthrough: true }) response: FastifyReply): Promise<void> {
+  async logout(
+    @GetUser() user: AuthenticatedUserModel,
+    @Res({ passthrough: true }) response: FastifyReply,
+  ): Promise<void> {
     this.logger.log(`User with email ${user.email} logged out`);
     clearAuthCookies(response);
     await this.authenticationService.logout(user.id);
@@ -76,7 +81,10 @@ export class AuthenticationController {
   @ApiUnauthorizedResponse()
   @ApiForbiddenResponse()
   @ApiOkResponse({ type: LoginModel })
-  async refreshToken(@GetUser() user: AuthenticatedUserModel, @Res({ passthrough: true }) response: FastifyReply): Promise<LoginModel> {
+  async refreshToken(
+    @GetUser() user: AuthenticatedUserModel,
+    @Res({ passthrough: true }) response: FastifyReply,
+  ): Promise<LoginModel> {
     this.logger.log(`Refresh token for user with email ${user.email}`);
     const loginModel = await this.authenticationService.refreshToken(user.id);
     setAuthCookies(response, loginModel);

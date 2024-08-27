@@ -16,7 +16,7 @@ const extractToken = (cookies: any, headers: IncomingHttpHeaders, cookieName: st
     if (authorizationHeader.toLowerCase().includes('bearer')) {
       logger.debug('Bearer token authorization header found');
       token = authorizationHeader.split(' ')[1];
-    }   
+    }
   }
 
   logger.debug(`Token found for ${cookieName}: ${token}`);

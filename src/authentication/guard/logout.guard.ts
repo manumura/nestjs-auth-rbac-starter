@@ -18,7 +18,7 @@ export class LogoutGuard implements CanActivate {
     const headers = request.headers;
     const cookies = request.cookies;
     const token = extractToken(cookies, headers, appConstants.ACCESS_TOKEN);
-    
+
     if (!token) {
       this.logger.error('Access token not found');
       throw new UnauthorizedException();

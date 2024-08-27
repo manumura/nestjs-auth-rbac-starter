@@ -189,11 +189,7 @@ export class UserService {
     this.logger.debug(`User created: ${JSON.stringify(user)}`);
 
     // Push new user event
-    const event = new UserChangeEvent(
-      UserChangeEventType.CREATED,
-      user,
-      currentUserUuid,
-    );
+    const event = new UserChangeEvent(UserChangeEventType.CREATED, user, currentUserUuid);
     this.pushUserChangeEvent(event);
 
     return user;
@@ -225,11 +221,7 @@ export class UserService {
     this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
 
     // Push new user event
-    const event = new UserChangeEvent(
-      UserChangeEventType.UPDATED,
-      user,
-      currentUser.uuid,
-    );
+    const event = new UserChangeEvent(UserChangeEventType.UPDATED, user, currentUser.uuid);
     this.pushUserChangeEvent(event);
 
     return user;
@@ -284,11 +276,7 @@ export class UserService {
     this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
 
     // Push new user event
-    const event = new UserChangeEvent(
-      UserChangeEventType.UPDATED,
-      user,
-      currentUser.uuid,
-    );
+    const event = new UserChangeEvent(UserChangeEventType.UPDATED, user, currentUser.uuid);
     this.pushUserChangeEvent(event);
 
     return user;
@@ -351,7 +339,7 @@ export class UserService {
     if (!saveResponse) {
       throw new InternalServerErrorException('Error while saving file');
     }
-    
+
     const user = await this.uploadAndUpdateImage(userEntity, saveResponse);
     return user;
   }
@@ -392,11 +380,7 @@ export class UserService {
     this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
 
     // Push new user event
-    const event = new UserChangeEvent(
-      UserChangeEventType.UPDATED,
-      user,
-      userEntity.uuid as UUID,
-    );
+    const event = new UserChangeEvent(UserChangeEventType.UPDATED, user, userEntity.uuid as UUID);
     this.pushUserChangeEvent(event);
 
     return user;
@@ -423,11 +407,7 @@ export class UserService {
     this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
 
     // Push new user event
-    const event = new UserChangeEvent(
-      UserChangeEventType.DELETED,
-      user,
-      currentUser.uuid,
-    );
+    const event = new UserChangeEvent(UserChangeEventType.DELETED, user, currentUser.uuid);
     this.pushUserChangeEvent(event);
 
     return user;
