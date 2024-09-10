@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, Logger, Post, Res, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, HttpCode, Logger, Param, Post, Res, UseGuards, ValidationPipe } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -8,20 +8,19 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { FastifyReply } from 'fastify';
-import { appConstants } from '../../app.constants';
-import { COOKIE_OPTIONS } from '../../config/cookie.config';
 import { GetUser } from '../../shared/decorator/get-user.decorator';
 import { clearAuthCookies, setAuthCookies } from '../../shared/util/cookies';
 import { RegisterDto } from '../../user/dto/register.dto';
+import { AuthenticatedUserModel } from '../../user/model/authenticated.user.model';
 import { UserModel } from '../../user/model/user.model';
 import { UserService } from '../../user/service/user.service';
 import { LoginDto } from '../dto/login.dto';
+import { Oauth2LoginDto } from '../dto/oauth2.login.dto';
 import { LogoutGuard } from '../guard/logout.guard';
 import { RefreshTokenGuard } from '../guard/refresh.token.guard';
 import { UserActiveGuard } from '../guard/user.active.guard';
 import { LoginModel } from '../model/login.model';
 import { AuthenticationService } from '../service/authentication.service';
-import { AuthenticatedUserModel } from '../../user/model/authenticated.user.model';
 
 @Controller()
 export class AuthenticationController {
@@ -49,11 +48,11 @@ export class AuthenticationController {
   @ApiBadRequestResponse({ description: 'Validation failed' })
   // https://docs.nestjs.com/techniques/cookies
   async login(
-    @Body(ValidationPipe) loginData: LoginDto,
+    @Body(ValidationPipe) loginDto: LoginDto,
     @Res({ passthrough: true }) response: FastifyReply,
   ): Promise<LoginModel> {
-    this.logger.log(`Login user with email ${loginData.email}`);
-    const login = await this.authenticationService.login(loginData);
+    this.logger.log(`Login user with email ${loginDto.email}`);
+    const login = await this.authenticationService.login(loginDto);
     setAuthCookies(response, login);
     return login;
   }
@@ -87,6 +86,21 @@ export class AuthenticationController {
   ): Promise<LoginModel> {
     this.logger.log(`Refresh token for user with email ${user.email}`);
     const loginModel = await this.authenticationService.refreshToken(user.id);
+    setAuthCookies(response, loginModel);
+    return loginModel;
+  }
+
+  @Post('/v1/oauth2/:provider')
+  @HttpCode(200)
+  @ApiOkResponse({ type: LoginModel })
+  @ApiBadRequestResponse({ description: 'Validation failed' })
+  async oauth2Login(
+    @Param('provider') provider: string,
+    @Body(ValidationPipe) oauth2LoginDto: Oauth2LoginDto,
+    @Res({ passthrough: true }) response: FastifyReply,
+  ): Promise<LoginModel> {
+    this.logger.log(`Oauth2 login user for provider ${provider}`);
+    const loginModel = await this.authenticationService.oauth2Login(provider, oauth2LoginDto);
     setAuthCookies(response, loginModel);
     return loginModel;
   }

@@ -31,6 +31,17 @@ model ResetPasswordToken {
   @@map("reset_password_token")
 }
 
+model VerifyEmailToken {
+  userId    Int       @id @unique(map: "REL_verify_email_token_user_id") @map("user_id")
+  token     String    @unique(map: "IDX_verify_email_token_token") @db.VarChar(50)
+  expiredAt DateTime  @map("expired_at") @db.Timestamp(0)
+  createdAt DateTime  @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime? @map("updated_at") @db.Timestamp(0)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "FK_verify_email_token_user_id_user_id")
+
+  @@map("verify_email_token")
+}
+
 model Role {
   id          Int    @id @default(autoincrement())
   name        String @unique(map: "IDX_role_name") @db.VarChar(255)
@@ -40,13 +51,33 @@ model Role {
   @@map("role")
 }
 
+model OauthProvider {
+  id          Int         @id @default(autoincrement())
+  name        String      @unique(map: "IDX_oauth_provider_name") @db.VarChar(255)
+  oauth2Users OauthUser[]
+
+  @@map("oauth_provider")
+}
+
+model OauthUser {
+  oauthProvider   OauthProvider @relation(fields: [oauthProviderId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  oauthProviderId Int           @map("oauth_provider_id") // relation scalar field (used in the `@relation` attribute above)
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId          Int           @map("user_id") // relation scalar field (used in the `@relation` attribute above)
+  externalUserId  String        @map("external_user_id") @db.VarChar(255)
+
+  @@id([oauthProviderId, userId])
+  @@map("oauth_user")
+}
+
 model User {
   id                  Int                  @id @default(autoincrement())
-  uuid                String               @unique(map: "IDX_user_uuid") @db.Uuid @default(dbgenerated("gen_random_uuid()"))
+  uuid                String               @unique(map: "IDX_user_uuid") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   password            String               @db.VarChar(255)
   email               String               @unique(map: "IDX_user_email") @db.VarChar(255)
   name                String?              @map("name") @db.VarChar(100)
-  isActive            Boolean              @map("is_active") @db.Boolean
+  isActive            Boolean              @default(true) @map("is_active") @db.Boolean
+  isEmailVerified     Boolean              @default(false) @map("is_email_verified") @db.Boolean
   imageId             String?              @map("image_id") @db.VarChar(255)
   imageUrl            String?              @map("image_url") @db.VarChar(255)
   createdAt           DateTime             @map("created_at") @db.Timestamp(0)
@@ -54,8 +85,13 @@ model User {
   roleId              Int                  @map("role_id")
   authenticationToken AuthenticationToken?
   resetPasswordToken  ResetPasswordToken?
+  verifyEmailToken    VerifyEmailToken?
   role                Role                 @relation(fields: [roleId], references: [id], onDelete: Restrict, onUpdate: Cascade, map: "FK_user_role_id_role_id")
+  oauthProviders      OauthUser[]
 
   @@index([roleId], map: "AK_user_role_id")
   @@map("user")
 }
+
+// npx prisma migrate dev --name added-oauth2-user
+// npx prisma migrate deploy

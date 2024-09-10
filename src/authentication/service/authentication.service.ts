@@ -8,18 +8,21 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import bfj from 'bfj';
+import { OAuth2Client } from 'google-auth-library';
 import moment from 'moment';
 import { nanoid } from 'nanoid';
 import { FilterUserDto } from 'src/user/dto/filter.user.dto';
 import { UserWithRole } from '../../../prisma/custom-types';
 import { appConfig } from '../../config/config';
 import { UserMapper } from '../../user/mapper/user.mapper';
+import { UserModel } from '../../user/model/user.model';
 import { UserRepository } from '../../user/repository/user.repository';
 import { LoginDto } from '../dto/login.dto';
+import { Oauth2LoginDto } from '../dto/oauth2.login.dto';
+import { Oauth2Provider } from '../dto/provider';
 import { LoginModel } from '../model/login.model';
 import { TokenModel } from '../model/token.model';
 import { AuthenticationTokenRepository } from '../repository/authentication.token.repository';
-import { UserModel } from '../../user/model/user.model';
 
 @Injectable()
 export class AuthenticationService {
@@ -149,5 +152,33 @@ export class AuthenticationService {
   private getRefreshTokenExpiryDate(): Date {
     const now = moment().utc();
     return now.add(appConfig.REFRESH_TOKEN_EXPIRES_IN_AS_SECONDS, 'seconds').toDate();
+  }
+
+  async oauth2Login(provider: string, oauth2LoginData: Oauth2LoginDto): Promise<LoginModel> {
+    try {
+      const oauth2Provider = provider as Oauth2Provider;
+      const { token } = oauth2LoginData;
+
+      if (oauth2Provider === Oauth2Provider.Google) {
+        const user = await this.verifyGoogleToken(token);
+        this.logger.log(`Oauth2 login user: ${JSON.stringify(user)}`);
+      }
+      return new LoginModel();
+    } catch (error) {
+      this.logger.error(`Oauth2 login failed for provider ${provider}`, error.stack);
+      throw new InternalServerErrorException('Oauth2 login failed');
+    }
+  }
+
+  private async verifyGoogleToken(token: string) {
+    // TODO config
+    const clientId = '581153865345-fo93hosijqg5j95pgdvec4gfskb22fh9.apps.googleusercontent.com';
+    const client = new OAuth2Client(clientId);
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: clientId,
+    });
+    const payload = ticket.getPayload();
+    return payload;
   }
 }
