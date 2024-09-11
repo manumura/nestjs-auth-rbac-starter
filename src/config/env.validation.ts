@@ -31,5 +31,6 @@ export function validateEnv() {
     LOG_LEVEL_QUERY: str(),
     RESET_PASSWORD_LINK: str(),
     MAIL_SENDER: str(),
+    GOOGLE_CLIENT_ID: str(),
   });
 }

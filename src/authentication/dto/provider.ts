@@ -1,4 +1,4 @@
-export enum Oauth2Provider {
-  Google = 'google',
-  Facebook = 'facebook',
+export enum OauthProvider {
+  Google = 'GOOGLE',
+  Facebook = 'FACEBOOK',
 }

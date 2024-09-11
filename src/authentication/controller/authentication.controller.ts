@@ -15,7 +15,7 @@ import { AuthenticatedUserModel } from '../../user/model/authenticated.user.mode
 import { UserModel } from '../../user/model/user.model';
 import { UserService } from '../../user/service/user.service';
 import { LoginDto } from '../dto/login.dto';
-import { Oauth2LoginDto } from '../dto/oauth2.login.dto';
+import { GoogleOauth2LoginDto } from '../dto/oauth2.login.dto';
 import { LogoutGuard } from '../guard/logout.guard';
 import { RefreshTokenGuard } from '../guard/refresh.token.guard';
 import { UserActiveGuard } from '../guard/user.active.guard';
@@ -90,17 +90,16 @@ export class AuthenticationController {
     return loginModel;
   }
 
-  @Post('/v1/oauth2/:provider')
+  @Post('/v1/oauth2/google')
   @HttpCode(200)
   @ApiOkResponse({ type: LoginModel })
   @ApiBadRequestResponse({ description: 'Validation failed' })
   async oauth2Login(
-    @Param('provider') provider: string,
-    @Body(ValidationPipe) oauth2LoginDto: Oauth2LoginDto,
+    @Body(ValidationPipe) googleOauth2LoginDto: GoogleOauth2LoginDto,
     @Res({ passthrough: true }) response: FastifyReply,
   ): Promise<LoginModel> {
-    this.logger.log(`Oauth2 login user for provider ${provider}`);
-    const loginModel = await this.authenticationService.oauth2Login(provider, oauth2LoginDto);
+    this.logger.log('Google Oauth2 login');
+    const loginModel = await this.authenticationService.googleOauth2Login(googleOauth2LoginDto);
     setAuthCookies(response, loginModel);
     return loginModel;
   }

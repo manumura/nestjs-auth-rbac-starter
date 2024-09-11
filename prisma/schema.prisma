@@ -65,8 +65,11 @@ model OauthUser {
   user            User          @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId          Int           @map("user_id") // relation scalar field (used in the `@relation` attribute above)
   externalUserId  String        @map("external_user_id") @db.VarChar(255)
+  email           String?       @db.VarChar(255)
 
   @@id([oauthProviderId, userId])
+  @@unique(name: "oauthProviderExternalUserId", [externalUserId, oauthProviderId])
+  @@unique(name: "oauthProviderEmail", [email, oauthProviderId])
   @@map("oauth_user")
 }
 
@@ -93,5 +96,6 @@ model User {
   @@map("user")
 }
 
-// npx prisma migrate dev --name added-oauth2-user
+// npx prisma migrate dev --name init
+// npx prisma migrate dev --name added_oauth2_user
 // npx prisma migrate deploy

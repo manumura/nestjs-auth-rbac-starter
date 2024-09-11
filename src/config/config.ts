@@ -38,6 +38,8 @@ const LOG_LEVEL_QUERY = config.get<string>('log.level.query');
 const RESET_PASSWORD_LINK = config.get<string>('link.reset-password');
 const MAIL_SENDER = config.get<string>('mail.sender');
 
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+
 export const appConfig = {
   NODE_ENV,
   COOKIE_SECRET,
@@ -66,4 +68,5 @@ export const appConfig = {
   LOG_LEVEL_QUERY,
   RESET_PASSWORD_LINK,
   MAIL_SENDER,
+  GOOGLE_CLIENT_ID,
 };

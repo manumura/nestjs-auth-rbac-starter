@@ -12,6 +12,8 @@ import { FilterUserDto } from '../dto/filter.user.dto';
 import { FilterUsersDto } from '../dto/filter.users.dto';
 import { GetUsersDto } from '../dto/get.users.dto';
 import { UpdateUserEntityDto } from '../dto/update.user.entity.dto';
+import { nanoid } from 'nanoid';
+import { FilterOauthUserDto } from '../dto/filter.oauth.user.dto';
 
 @Injectable()
 export class UserRepository {
@@ -29,7 +31,7 @@ export class UserRepository {
     const userEntityToCreate: Prisma.UserCreateInput = {
       password: hashedPassword,
       email,
-      name: name ? name : '',
+      name: name ?? '',
       isActive: true,
       role: {
         connect: {
@@ -37,6 +39,44 @@ export class UserRepository {
         },
       },
       createdAt: moment().utc().toDate(),
+    };
+
+    return this.prisma.user.create({
+      data: userEntityToCreate,
+      include: {
+        role: true,
+      },
+    });
+  }
+
+  async createOauth(
+    email: string,
+    name: string,
+    roleId: number,
+    oauthProviderId: number,
+    externalUserId: string,
+  ): Promise<UserWithRole> {
+    const password = nanoid();
+    const hashedPassword = await this.generateHashedPassword(password);
+    const userEntityToCreate: Prisma.UserCreateInput = {
+      password: hashedPassword,
+      email,
+      name: name ?? '',
+      isActive: true,
+      isEmailVerified: true,
+      role: {
+        connect: {
+          id: roleId,
+        },
+      },
+      createdAt: moment().utc().toDate(),
+      oauthProviders: {
+        create: {
+          oauthProviderId,
+          externalUserId,
+          email,
+        },
+      },
     };
 
     return this.prisma.user.create({
@@ -233,6 +273,29 @@ export class UserRepository {
         ...(uuid ? { uuid } : {}),
         ...(email ? { email } : {}),
         ...(active !== undefined && active !== null ? { isActive: active.toString().toLowerCase() === 'true' } : {}),
+      },
+      include: {
+        role: true,
+      },
+    });
+  }
+
+  async findOneOauth(filter: FilterOauthUserDto): Promise<UserWithRole | null> {
+    const { oauthProviderId, externalUserId } = filter;
+
+    if (!oauthProviderId || !externalUserId) {
+      this.logger.error('Provider and external user ID required');
+      return null;
+    }
+
+    return this.prisma.user.findFirst({
+      where: {
+        oauthProviders: {
+          some: {
+            oauthProviderId,
+            externalUserId,
+          },
+        },
       },
       include: {
         role: true,

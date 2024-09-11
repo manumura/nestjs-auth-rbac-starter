@@ -20,6 +20,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { appConfig } from '../config/config';
 import { StorageService } from '../storage/storage.service';
 import { CaptchaController } from './controller/captcha.controller';
+import { OauthProviderRepository } from '../user/repository/oauth-provider.repository';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { CaptchaController } from './controller/captcha.controller';
     // https://docs.nestjs.com/fundamentals/custom-providers
     UserRepository,
     RoleRepository,
+    OauthProviderRepository,
     ResetPasswordTokenRepository,
     AuthenticationTokenRepository,
   ],

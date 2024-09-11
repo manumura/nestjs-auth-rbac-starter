@@ -26,6 +26,7 @@ CREATE TABLE "oauth_user" (
     "oauth_provider_id" INTEGER NOT NULL,
     "user_id" INTEGER NOT NULL,
     "external_user_id" VARCHAR(255) NOT NULL,
+    "email" VARCHAR(255),
 
     CONSTRAINT "oauth_user_pkey" PRIMARY KEY ("oauth_provider_id","user_id")
 );
@@ -38,6 +39,12 @@ CREATE UNIQUE INDEX "IDX_verify_email_token_token" ON "verify_email_token"("toke
 
 -- CreateIndex
 CREATE UNIQUE INDEX "IDX_oauth_provider_name" ON "oauth_provider"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "oauth_user_external_user_id_oauth_provider_id_key" ON "oauth_user"("external_user_id", "oauth_provider_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "oauth_user_email_oauth_provider_id_key" ON "oauth_user"("email", "oauth_provider_id");
 
 -- AddForeignKey
 ALTER TABLE "verify_email_token" ADD CONSTRAINT "FK_verify_email_token_user_id_user_id" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
