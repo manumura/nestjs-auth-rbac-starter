@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, Logger, Param, Post, Res, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, HttpCode, Logger, Post, Res, UseGuards, ValidationPipe } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -15,7 +15,8 @@ import { AuthenticatedUserModel } from '../../user/model/authenticated.user.mode
 import { UserModel } from '../../user/model/user.model';
 import { UserService } from '../../user/service/user.service';
 import { LoginDto } from '../dto/login.dto';
-import { GoogleOauth2LoginDto } from '../dto/oauth2.login.dto';
+import { Oauth2FacebookLoginDto } from '../dto/oauth2.facebook.login.dto';
+import { Oauth2GoogleLoginDto } from '../dto/oauth2.google.login.dto';
 import { LogoutGuard } from '../guard/logout.guard';
 import { RefreshTokenGuard } from '../guard/refresh.token.guard';
 import { UserActiveGuard } from '../guard/user.active.guard';
@@ -94,12 +95,27 @@ export class AuthenticationController {
   @HttpCode(200)
   @ApiOkResponse({ type: LoginModel })
   @ApiBadRequestResponse({ description: 'Validation failed' })
-  async oauth2Login(
-    @Body(ValidationPipe) googleOauth2LoginDto: GoogleOauth2LoginDto,
+  async oauth2GoogleLogin(
+    @Body(ValidationPipe) oauth2GoogleLoginDto: Oauth2GoogleLoginDto,
     @Res({ passthrough: true }) response: FastifyReply,
   ): Promise<LoginModel> {
     this.logger.log('Google Oauth2 login');
-    const loginModel = await this.authenticationService.googleOauth2Login(googleOauth2LoginDto);
+    const loginModel = await this.authenticationService.oauth2GoogleLogin(oauth2GoogleLoginDto);
+    setAuthCookies(response, loginModel);
+    return loginModel;
+  }
+
+  // TODO email password to separate table user_credentials
+  @Post('/v1/oauth2/facebook')
+  @HttpCode(200)
+  @ApiOkResponse({ type: LoginModel })
+  @ApiBadRequestResponse({ description: 'Validation failed' })
+  async oauth2FacebookLogin(
+    @Body(ValidationPipe) oauth2FacebookLogin: Oauth2FacebookLoginDto,
+    @Res({ passthrough: true }) response: FastifyReply,
+  ): Promise<LoginModel> {
+    this.logger.log('Facebook Oauth2 login');
+    const loginModel = await this.authenticationService.oauth2FacebookLogin(oauth2FacebookLogin);
     setAuthCookies(response, loginModel);
     return loginModel;
   }

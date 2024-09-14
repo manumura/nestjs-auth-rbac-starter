@@ -8,24 +8,25 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import bfj from 'bfj';
-import { OAuth2Client, TokenPayload } from 'google-auth-library';
+import { OAuth2Client } from 'google-auth-library';
 import moment from 'moment';
 import { nanoid } from 'nanoid';
 import { FilterUserDto } from 'src/user/dto/filter.user.dto';
 import { UserWithRole } from '../../../prisma/custom-types';
 import { appConfig } from '../../config/config';
 import { UserMapper } from '../../user/mapper/user.mapper';
+import { Role } from '../../user/model/role.model';
 import { UserModel } from '../../user/model/user.model';
+import { OauthProviderRepository } from '../../user/repository/oauth-provider.repository';
+import { RoleRepository } from '../../user/repository/role.repository';
 import { UserRepository } from '../../user/repository/user.repository';
 import { LoginDto } from '../dto/login.dto';
-import { GoogleOauth2LoginDto } from '../dto/oauth2.login.dto';
+import { Oauth2GoogleLoginDto } from '../dto/oauth2.google.login.dto';
 import { OauthProvider } from '../dto/provider';
 import { LoginModel } from '../model/login.model';
 import { TokenModel } from '../model/token.model';
 import { AuthenticationTokenRepository } from '../repository/authentication.token.repository';
-import { RoleRepository } from '../../user/repository/role.repository';
-import { Role } from '../../user/model/role.model';
-import { OauthProviderRepository } from '../../user/repository/oauth-provider.repository';
+import { Oauth2FacebookLoginDto } from '../dto/oauth2.facebook.login.dto';
 
 @Injectable()
 export class AuthenticationService {
@@ -159,60 +160,97 @@ export class AuthenticationService {
     return now.add(appConfig.REFRESH_TOKEN_EXPIRES_IN_AS_SECONDS, 'seconds').toDate();
   }
 
-  // TODO email password to separate table
-  async googleOauth2Login(googleOauth2LoginDto: GoogleOauth2LoginDto): Promise<LoginModel> {
+  async oauth2GoogleLogin(oauth2GoogleLoginDto: Oauth2GoogleLoginDto): Promise<LoginModel> {
     try {
-      const { token } = googleOauth2LoginDto;
+      const { token } = oauth2GoogleLoginDto;
       const googleUser = await this.verifyGoogleToken(token);
       this.logger.log(`Google oauth2 login user: ${JSON.stringify(googleUser)}`);
       if (!googleUser) {
         throw new UnauthorizedException('Invalid Google oauth2 user');
       }
 
-      const roleEntity = await this.roleRepository.findByName(Role.USER);
-      if (!roleEntity) {
-        throw new NotFoundException(`Role not found by name: ${Role.USER}`);
-      }
-
-      const oauthProviderEntity = await this.oauthProviderRepository.findByName(OauthProvider.Google);
-      if (!oauthProviderEntity) {
-        throw new NotFoundException(`Oauth provider not found by name: ${OauthProvider.Google}`);
-      }
-
-      let userEntity = await this.userRepository.findOneOauth({
-        oauthProviderId: oauthProviderEntity.id,
-        externalUserId: googleUser.sub,
+      return await this.oauth2Login({
+        id: googleUser.sub,
+        email: googleUser.email,
+        name: googleUser.name,
+        provider: OauthProvider.Google,
       });
-
-      if (!userEntity) {
-        userEntity = await this.userRepository.createOauth(
-          googleUser.email ? OauthProvider.Google + '#' + googleUser.email : 'N/A#' + googleUser.sub,
-          googleUser.name ?? 'N/A',
-          roleEntity.id,
-          oauthProviderEntity.id,
-          googleUser.sub,
-        );
-      }
-      if (!userEntity) {
-        throw new UnauthorizedException('Oauth2 login failed');
-      }
-
-      const tokenModel = await this.generateAuthenticationTokens(userEntity);
-      const user = this.userMapper.entityToModel(userEntity);
-      const json = await bfj.stringify(user);
-      this.logger.debug(`User refresh token: ${json}`);
-
-      const loginModel: LoginModel = {
-        accessToken: tokenModel.accessToken,
-        accessTokenExpiresAt: tokenModel.accessTokenExpiryDate,
-        refreshToken: tokenModel.refreshToken,
-        idToken: this.generateIdToken(user),
-      };
-      return loginModel;
     } catch (error) {
       this.logger.error('Google oauth2 login failed', error.stack);
       throw new InternalServerErrorException('Oauth2 login failed: ' + error.message);
     }
+  }
+
+  async oauth2FacebookLogin(oauth2FacebookLoginDto: Oauth2FacebookLoginDto): Promise<LoginModel> {
+    try {
+      const { id, email, name } = oauth2FacebookLoginDto;
+      return await this.oauth2Login({
+        id,
+        email,
+        name,
+        provider: OauthProvider.Facebook,
+      });
+    } catch (error) {
+      this.logger.error('Google oauth2 login failed', error.stack);
+      throw new InternalServerErrorException('Oauth2 login failed: ' + error.message);
+    }
+  }
+
+  private async oauth2Login({
+    id,
+    email,
+    name,
+    provider,
+  }: {
+    id: string;
+    email?: string;
+    name?: string;
+    provider: OauthProvider;
+  }): Promise<LoginModel> {
+    if (!id) {
+      throw new BadRequestException('Invalid oauth2 user ID');
+    }
+
+    const roleEntity = await this.roleRepository.findByName(Role.USER);
+    if (!roleEntity) {
+      throw new NotFoundException(`Role not found by name: ${Role.USER}`);
+    }
+
+    const oauthProviderEntity = await this.oauthProviderRepository.findByName(provider);
+    if (!oauthProviderEntity) {
+      throw new NotFoundException(`Oauth provider not found by name: ${provider}`);
+    }
+
+    let userEntity = await this.userRepository.findOneOauth({
+      oauthProviderId: oauthProviderEntity.id,
+      externalUserId: id,
+    });
+
+    if (!userEntity) {
+      userEntity = await this.userRepository.createOauth(
+        email ? provider + '#' + email : 'N/A#' + id,
+        name ?? 'N/A',
+        roleEntity.id,
+        oauthProviderEntity.id,
+        id,
+      );
+    }
+    if (!userEntity) {
+      throw new UnauthorizedException('Oauth2 login failed');
+    }
+
+    const tokenModel = await this.generateAuthenticationTokens(userEntity);
+    const user = this.userMapper.entityToModel(userEntity);
+    const json = await bfj.stringify(user);
+    this.logger.debug(`User refresh token: ${json}`);
+
+    const loginModel: LoginModel = {
+      accessToken: tokenModel.accessToken,
+      accessTokenExpiresAt: tokenModel.accessTokenExpiryDate,
+      refreshToken: tokenModel.refreshToken,
+      idToken: this.generateIdToken(user),
+    };
+    return loginModel;
   }
 
   private async verifyGoogleToken(token: string) {

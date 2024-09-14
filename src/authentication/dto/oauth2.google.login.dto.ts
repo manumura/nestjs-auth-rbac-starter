@@ -1,6 +1,6 @@
 import { IsNotEmpty } from 'class-validator';
 
-export class GoogleOauth2LoginDto {
+export class Oauth2GoogleLoginDto {
   @IsNotEmpty()
   public token: string;
 }
