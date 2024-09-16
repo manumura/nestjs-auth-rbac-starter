@@ -58,7 +58,7 @@ export class ResetPasswordService {
     };
     const userEntity = await this.userRepository.findOne(filterByEmail);
     this.logger.debug(`User found: ${JSON.stringify(userEntity)}`);
-    if (!userEntity) {
+    if (!userEntity || !userEntity.credentials) {
       // Dont throw error to not reveal email is not found
       this.logger.warn(`User with email ${email} not found`);
       return null;
@@ -72,9 +72,9 @@ export class ResetPasswordService {
     this.logger.debug(`Reset password token created: ${JSON.stringify(resetPasswordTokenModelCreated)}`);
 
     // Send email
-    this.logger.verbose(`[EMAIL][RESET_PWD] Sending email to USER: ${userEntity.email}`);
+    this.logger.verbose(`[EMAIL][RESET_PWD] Sending email to USER: ${userEntity.credentials.email}`);
     this.emailService
-      .sendResetPasswordEmail(userEntity.email, 'en', resetPasswordTokenModelCreated.token)
+      .sendResetPasswordEmail(userEntity.credentials.email, 'en', resetPasswordTokenModelCreated.token)
       .then((result) => {
         this.logger.verbose(`[EMAIL][RESET_PWD] Result Sending email to USER: ${JSON.stringify(result)}`);
       })
@@ -91,7 +91,7 @@ export class ResetPasswordService {
 
     this.logger.debug(`Find user by token: ${token}`);
     const userEntity = await this.userRepository.findOneByValidResetPasswordToken(token);
-    if (!userEntity) {
+    if (!userEntity || !userEntity.credentials) {
       throw new NotFoundException('User not found or token already expired');
     }
     this.logger.debug(`User found: ${JSON.stringify(userEntity)}`);
@@ -102,17 +102,34 @@ export class ResetPasswordService {
       // Transaction : update user + delete reset password token
       const user = await this.prisma.$transaction(async (tx) => {
         this.logger.debug('Begin transaction: update user password');
-        const { role, ...userEntityToUpdate } = userEntity;
-        userEntityToUpdate.password = hashedPassword;
-        const updatedUserEntity = await tx.user.update({
+        await tx.userCredentials.update({
           where: {
-            id: userEntity.id,
+            userId: userEntity.id,
           },
-          data: userEntityToUpdate,
+          data: {
+            password: hashedPassword,
+          },
           include: {
-            role: true,
+            user: {
+              include: {
+                role: true,
+              },
+            },
           },
         });
+
+        // TODO test delete reset password token in DB
+        // const { role, credentials, ...userEntityToUpdate } = userEntity;
+        // userEntityToUpdate.password = hashedPassword;
+        // const updatedUserEntity = await tx.user.update({
+        //   where: {
+        //     id: userEntity.id,
+        //   },
+        //   data: userEntityToUpdate,
+        //   include: {
+        //     role: true,
+        //   },
+        // });
         this.logger.debug('Delete reset password token by token');
         await tx.resetPasswordToken.delete({
           where: {
@@ -120,7 +137,7 @@ export class ResetPasswordService {
           },
         });
         this.logger.debug('End transaction');
-        const user = this.userMapper.entityToModel(updatedUserEntity);
+        const user = this.userMapper.entityToModel(userEntity);
         return user;
       });
 

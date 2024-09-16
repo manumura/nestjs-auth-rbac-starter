@@ -1,19 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Prisma, Role } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import moment from 'moment';
-import { v4 as uuidv4 } from 'uuid';
-import { UserWithRole } from '../../../prisma/custom-types';
+import { UserWithRoleCredentialsAndOauthProviders } from '../../../prisma/custom-types';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { appConfig } from '../../config/config';
 import { PageModel } from '../../shared/model/page.model';
-import { CreateUserDto } from '../dto/create.user.dto';
+import { FilterOauthUserDto } from '../dto/filter.oauth.user.dto';
 import { FilterUserDto } from '../dto/filter.user.dto';
-import { FilterUsersDto } from '../dto/filter.users.dto';
 import { GetUsersDto } from '../dto/get.users.dto';
 import { UpdateUserEntityDto } from '../dto/update.user.entity.dto';
-import { nanoid } from 'nanoid';
-import { FilterOauthUserDto } from '../dto/filter.oauth.user.dto';
 
 @Injectable()
 export class UserRepository {
@@ -26,11 +22,14 @@ export class UserRepository {
     return isValid;
   }
 
-  async create(email: string, name: string, password: string, roleId: number): Promise<UserWithRole> {
+  async create(
+    email: string,
+    name: string,
+    password: string,
+    roleId: number,
+  ): Promise<UserWithRoleCredentialsAndOauthProviders> {
     const hashedPassword = await this.generateHashedPassword(password);
     const userEntityToCreate: Prisma.UserCreateInput = {
-      password: hashedPassword,
-      email,
       name: name ?? '',
       isActive: true,
       role: {
@@ -39,12 +38,31 @@ export class UserRepository {
         },
       },
       createdAt: moment().utc().toDate(),
+      credentials: {
+        create: {
+          email,
+          password: hashedPassword,
+        },
+      },
     };
 
     return this.prisma.user.create({
       data: userEntityToCreate,
       include: {
         role: true,
+        credentials: true,
+        oauthProviders: {
+          select: {
+            externalUserId: true,
+            email: true,
+            oauthProvider: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
   }
@@ -55,15 +73,10 @@ export class UserRepository {
     roleId: number,
     oauthProviderId: number,
     externalUserId: string,
-  ): Promise<UserWithRole> {
-    const password = nanoid();
-    const hashedPassword = await this.generateHashedPassword(password);
+  ): Promise<UserWithRoleCredentialsAndOauthProviders> {
     const userEntityToCreate: Prisma.UserCreateInput = {
-      password: hashedPassword,
-      email,
       name: name ?? '',
       isActive: true,
-      isEmailVerified: true,
       role: {
         connect: {
           id: roleId,
@@ -83,55 +96,30 @@ export class UserRepository {
       data: userEntityToCreate,
       include: {
         role: true,
+        credentials: true,
+        oauthProviders: {
+          select: {
+            externalUserId: true,
+            email: true,
+            oauthProvider: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
   }
 
-  async createMany(createUserDtos: CreateUserDto[], rolesMap: Map<string, Role>): Promise<number> {
-    const initUserToCreatePromises: any[] = [];
-    createUserDtos.forEach((createUserDto) => {
-      initUserToCreatePromises.push(() => this.initUserToCreate(createUserDto, rolesMap));
-    });
-
-    const users = await Promise.all(initUserToCreatePromises.map((p) => p().catch((err) => this.logger.error(err))));
-    const usersToInsert = users.filter((user): user is Prisma.UserCreateManyInput => user !== null);
-
-    const result = await this.prisma.user.createMany({
-      data: usersToInsert,
-      skipDuplicates: true,
-    });
-
-    return result.count;
-  }
-
-  private async initUserToCreate(createUserDto: CreateUserDto, rolesMap: Map<string, Role>) {
-    const { email, name, role } = createUserDto;
-    const password = uuidv4();
-    const hashedPassword = await this.generateHashedPassword(password);
-    const roleEntity = rolesMap.get(role);
-    if (!roleEntity || !roleEntity.id) {
-      this.logger.error(`Cannot find role entity with name ${role}`);
-      return null;
-    }
-
-    const userEntity: Prisma.UserCreateManyInput = {
-      password: hashedPassword,
-      email,
-      name: name ? name : '',
-      isActive: true,
-      roleId: roleEntity.id,
-      createdAt: moment().utc().toDate(),
-    };
-
-    return userEntity;
-  }
-
-  async updateById(id: number, updateUserEntityDto: UpdateUserEntityDto): Promise<UserWithRole> {
+  async updateById(
+    id: number,
+    updateUserEntityDto: UpdateUserEntityDto,
+  ): Promise<UserWithRoleCredentialsAndOauthProviders> {
     const { email, password, name, isActive, imageId, imageUrl, roleId } = updateUserEntityDto;
     const hashedPassword = password ? await this.generateHashedPassword(password) : undefined;
     const userEntityToUpdate: Prisma.UserUpdateInput = {
-      ...(email ? { email } : {}),
-      ...(hashedPassword ? { password: hashedPassword } : {}),
       ...(name ? { name } : {}),
       ...(roleId ? { roleId } : {}),
       ...(isActive !== undefined && isActive !== null
@@ -140,6 +128,16 @@ export class UserRepository {
       ...(imageId ? { imageId } : {}),
       ...(imageUrl ? { imageUrl } : {}),
       updatedAt: moment().utc().toDate(),
+      ...(email || hashedPassword
+        ? {
+            credentials: {
+              update: {
+                ...(email ? { email } : {}),
+                ...(hashedPassword ? { password: hashedPassword } : {}),
+              },
+            },
+          }
+        : {}),
     };
 
     return this.prisma.user.update({
@@ -149,35 +147,24 @@ export class UserRepository {
       data: userEntityToUpdate,
       include: {
         role: true,
+        credentials: true,
+        oauthProviders: {
+          select: {
+            externalUserId: true,
+            email: true,
+            oauthProvider: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
   }
 
-  async updateByEmail(email: string, updateUserEntityDto: UpdateUserEntityDto): Promise<UserWithRole> {
-    const { password, name, isActive, roleId } = updateUserEntityDto;
-    const hashedPassword = password ? await this.generateHashedPassword(password) : undefined;
-    const userEntityToUpdate: Prisma.UserUpdateInput = {
-      ...(hashedPassword ? { password: hashedPassword } : {}),
-      ...(name ? { name } : {}),
-      ...(roleId ? { roleId } : {}),
-      ...(isActive !== undefined && isActive !== null
-        ? { isActive: isActive.toString().toLowerCase() === 'true' }
-        : {}),
-      updatedAt: moment().utc().toDate(),
-    };
-
-    return this.prisma.user.update({
-      where: {
-        email,
-      },
-      data: userEntityToUpdate,
-      include: {
-        role: true,
-      },
-    });
-  }
-
-  async findAll(getUsersDto: GetUsersDto): Promise<PageModel<UserWithRole>> {
+  async findAll(getUsersDto: GetUsersDto): Promise<PageModel<UserWithRoleCredentialsAndOauthProviders>> {
     const { page, pageSize, role } = getUsersDto;
 
     const where = {
@@ -210,6 +197,19 @@ export class UserRepository {
       },
       include: {
         role: true,
+        credentials: true,
+        oauthProviders: {
+          select: {
+            externalUserId: true,
+            email: true,
+            oauthProvider: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
       skip,
       take,
@@ -222,44 +222,14 @@ export class UserRepository {
     });
     this.logger.debug(`totalElements: ${totalElements}`);
 
-    const pageable: PageModel<UserWithRole> = {
+    const pageable: PageModel<UserWithRoleCredentialsAndOauthProviders> = {
       elements: entities,
       totalElements,
     };
     return pageable;
   }
 
-  async findAllByFilter(filter: FilterUsersDto): Promise<UserWithRole[]> {
-    const { active, role, langCode, emails } = filter;
-
-    const entities = this.prisma.user.findMany({
-      where: {
-        ...(active !== undefined && active !== null ? { isActive: active.toString().toLowerCase() === 'true' } : {}),
-        ...(role
-          ? {
-              role: {
-                name: role,
-              },
-            }
-          : {}),
-        ...(langCode ? { langCode: langCode } : {}),
-        ...(emails
-          ? {
-              email: {
-                in: emails,
-              },
-            }
-          : {}),
-      },
-      include: {
-        role: true,
-      },
-    });
-
-    return entities;
-  }
-
-  async findOne(filter: FilterUserDto): Promise<UserWithRole | null> {
+  async findOne(filter: FilterUserDto): Promise<UserWithRoleCredentialsAndOauthProviders | null> {
     const { active, id, uuid, email } = filter;
 
     if (!id && !uuid && !email) {
@@ -271,16 +241,35 @@ export class UserRepository {
       where: {
         ...(id ? { id } : {}),
         ...(uuid ? { uuid } : {}),
-        ...(email ? { email } : {}),
         ...(active !== undefined && active !== null ? { isActive: active.toString().toLowerCase() === 'true' } : {}),
+        ...(email
+          ? {
+              credentials: {
+                email,
+              },
+            }
+          : {}),
       },
       include: {
         role: true,
+        credentials: true,
+        oauthProviders: {
+          select: {
+            externalUserId: true,
+            email: true,
+            oauthProvider: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
   }
 
-  async findOneOauth(filter: FilterOauthUserDto): Promise<UserWithRole | null> {
+  async findOneByOauthProvider(filter: FilterOauthUserDto): Promise<UserWithRoleCredentialsAndOauthProviders | null> {
     const { oauthProviderId, externalUserId } = filter;
 
     if (!oauthProviderId || !externalUserId) {
@@ -299,11 +288,24 @@ export class UserRepository {
       },
       include: {
         role: true,
+        credentials: true,
+        oauthProviders: {
+          select: {
+            externalUserId: true,
+            email: true,
+            oauthProvider: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
   }
 
-  async findOneByValidResetPasswordToken(token: string): Promise<UserWithRole | null> {
+  async findOneByValidResetPasswordToken(token: string): Promise<UserWithRoleCredentialsAndOauthProviders | null> {
     const now = moment().utc().toDate();
     return this.prisma.user.findFirst({
       where: {
@@ -316,6 +318,19 @@ export class UserRepository {
       },
       include: {
         role: true,
+        credentials: true,
+        oauthProviders: {
+          select: {
+            externalUserId: true,
+            email: true,
+            oauthProvider: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
   }
@@ -326,25 +341,25 @@ export class UserRepository {
       return false;
     }
 
-    const userEntity = await this.prisma.user.findFirst({
+    const userEntity = await this.prisma.userCredentials.findFirst({
       where: {
         email,
         ...(id
           ? {
-              id: {
+              userId: {
                 not: id,
               },
             }
           : {}),
       },
       include: {
-        role: true,
+        user: true,
       },
     });
     return !!userEntity;
   }
 
-  async deleteById(userId: number): Promise<UserWithRole> {
+  async deleteById(userId: number): Promise<UserWithRoleCredentialsAndOauthProviders> {
     // ON DELETE CASCADE
     return this.prisma.user.delete({
       where: {
@@ -352,6 +367,19 @@ export class UserRepository {
       },
       include: {
         role: true,
+        credentials: true,
+        oauthProviders: {
+          select: {
+            externalUserId: true,
+            email: true,
+            oauthProvider: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
   }

@@ -7,20 +7,18 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Role } from '@prisma/client';
-import { plainToInstance } from 'class-transformer';
-import { ValidationError, validate } from 'class-validator';
+import { UploadApiResponse } from 'cloudinary';
 import { UUID } from 'crypto';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
-import { UserWithRole } from '../../../prisma/custom-types';
+import { UserWithRole, UserWithRoleCredentialsAndOauthProviders } from '../../../prisma/custom-types';
 import { appConfig } from '../../config/config';
 import { EmailService } from '../../notification/email.service';
 import { PageModel } from '../../shared/model/page.model';
+import { UploadResponseModel } from '../../shared/model/upload.response.model';
 import { StorageService } from '../../storage/storage.service';
 import { CreateUserDto } from '../dto/create.user.dto';
 import { FilterUserDto } from '../dto/filter.user.dto';
-import { FilterUsersDto } from '../dto/filter.users.dto';
 import { GetUsersDto } from '../dto/get.users.dto';
 import { RegisterDto } from '../dto/register.dto';
 import { UpdatePasswordDto } from '../dto/update.password.dto';
@@ -28,14 +26,12 @@ import { UpdateProfileDto } from '../dto/update.profile.dto';
 import { UpdateUserDto } from '../dto/update.user.dto';
 import { UpdateUserEntityDto } from '../dto/update.user.entity.dto';
 import { UserMapper } from '../mapper/user.mapper';
+import { AuthenticatedUserModel } from '../model/authenticated.user.model';
 import { Role as RoleEnum } from '../model/role.model';
 import { UserChangeEvent, UserChangeEventType } from '../model/user.change.event';
 import { UserModel } from '../model/user.model';
 import { RoleRepository } from '../repository/role.repository';
 import { UserRepository } from '../repository/user.repository';
-import { AuthenticatedUserModel } from '../model/authenticated.user.model';
-import { UploadResponseModel } from '../../shared/model/upload.response.model';
-import { UploadApiResponse } from 'cloudinary';
 
 @Injectable()
 export class UserService {
@@ -69,37 +65,9 @@ export class UserService {
     return modelsPageable;
   }
 
-  async findByUuid(uuid: UUID): Promise<UserModel> {
-    if (!uuid) {
-      throw new BadRequestException('UUID cannot be undefined');
-    }
-
-    const filterByUuid: FilterUserDto = {
-      uuid,
-    };
-    const entity = await this.userRepository.findOne(filterByUuid);
-    if (!entity) {
-      throw new NotFoundException(`User with UUID ${uuid} not found`);
-    }
-    const user = this.userMapper.entityToModel(entity);
-    this.logger.debug(`User found: ${JSON.stringify(user)}`);
-    return user;
-  }
-
-  async findByIdAndEmail(id: number, email: string): Promise<UserModel> {
-    if (!id || !email) {
-      throw new BadRequestException('ID and email cannot be undefined');
-    }
-
-    const filter: FilterUserDto = {
-      id,
-      email,
-    };
-    const entity = await this.userRepository.findOne(filter);
-    if (!entity) {
-      throw new NotFoundException(`User with ID ${id} and email ${email} not found`);
-    }
-    const user = this.userMapper.entityToModel(entity);
+  async findByUuid(userUuid: UUID): Promise<UserModel> {
+    const userEntity = await this.getByUserUuid(userUuid);
+    const user = this.userMapper.entityToModel(userEntity);
     this.logger.debug(`User found: ${JSON.stringify(user)}`);
     return user;
   }
@@ -195,58 +163,33 @@ export class UserService {
     return user;
   }
 
-  async updateProfileById(currentUser: AuthenticatedUserModel, updateProfileDto: UpdateProfileDto): Promise<UserModel> {
+  async updateProfileByUserUuid(userUuid: UUID, updateProfileDto: UpdateProfileDto): Promise<UserModel> {
     this.logger.debug('Update profile by ID');
     const { name } = updateProfileDto;
-    if (!currentUser?.id || !name) {
-      throw new BadRequestException('User ID or name are undefined');
+    if (!name) {
+      throw new BadRequestException('Name must be defined');
     }
 
-    this.logger.debug(`Find user by ID: ${currentUser.id}`);
-    const filterById: FilterUserDto = {
-      id: currentUser.id,
-    };
-    const userEntity = await this.userRepository.findOne(filterById);
-    this.logger.debug(`User found: ${JSON.stringify(userEntity)}`);
-    if (!userEntity) {
-      throw new NotFoundException(`User not found with ID: ${currentUser.id}`);
-    }
-
+    const userEntity = await this.getByUserUuid(userUuid);
     const updateUserEntityDto: UpdateUserEntityDto = {
       name,
     };
 
-    const updatedUserEntity = await this.userRepository.updateById(currentUser.id, updateUserEntityDto);
+    const updatedUserEntity = await this.userRepository.updateById(userEntity.id, updateUserEntityDto);
     const user = this.userMapper.entityToModel(updatedUserEntity);
     this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
 
     // Push new user event
-    const event = new UserChangeEvent(UserChangeEventType.UPDATED, user, currentUser.uuid);
+    const event = new UserChangeEvent(UserChangeEventType.UPDATED, user, userUuid);
     this.pushUserChangeEvent(event);
 
     return user;
   }
 
-  async updateUserByUuid(
-    userUuid: UUID,
-    updateUserDto: UpdateUserDto,
-    currentUser: AuthenticatedUserModel,
-  ): Promise<UserModel> {
+  async updateByUuid(userUuid: UUID, updateUserDto: UpdateUserDto): Promise<UserModel> {
     this.logger.debug('Update user by UUID');
     const { email, password, name, active, role } = updateUserDto;
-    if (!userUuid) {
-      throw new BadRequestException('User UUID undefined');
-    }
-
-    this.logger.debug(`Find user by UUID: ${userUuid}`);
-    const filterByUuid: FilterUserDto = {
-      uuid: userUuid,
-    };
-    const userEntity = await this.userRepository.findOne(filterByUuid);
-    this.logger.debug(`User found: ${JSON.stringify(userEntity)}`);
-    if (!userEntity) {
-      throw new NotFoundException(`User not found with UUID: ${userUuid}`);
-    }
+    const userEntity = await this.getByUserUuid(userUuid);
 
     if (email) {
       const isUserEmailAlreadyExists = await this.userRepository.isUserEmailAlreadyExists(email, userEntity.id);
@@ -276,33 +219,25 @@ export class UserService {
     this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
 
     // Push new user event
-    const event = new UserChangeEvent(UserChangeEventType.UPDATED, user, currentUser.uuid);
+    const event = new UserChangeEvent(UserChangeEventType.UPDATED, user, userUuid);
     this.pushUserChangeEvent(event);
 
     return user;
   }
 
-  async updatePasswordByUserId(
-    currentUser: AuthenticatedUserModel,
-    updatePasswordDto: UpdatePasswordDto,
-  ): Promise<UserModel> {
+  async updatePasswordByUserUuid(userUuid: UUID, updatePasswordDto: UpdatePasswordDto): Promise<UserModel> {
     this.logger.debug('Update password by user ID');
     const { oldPassword, newPassword } = updatePasswordDto;
-    if (!currentUser.id || !oldPassword || !newPassword) {
-      throw new BadRequestException('User ID or password are undefined');
+    if (!oldPassword || !newPassword) {
+      throw new BadRequestException('Password must be defined');
     }
 
-    this.logger.debug(`Find user by ID: ${currentUser.id}`);
-    const filterById: FilterUserDto = {
-      id: currentUser.id,
-    };
-    const userEntity = await this.userRepository.findOne(filterById);
-    this.logger.debug(`User found: ${JSON.stringify(userEntity)}`);
-    if (!userEntity) {
-      throw new NotFoundException(`User not found with ID: ${currentUser.id}`);
+    const userEntity = await this.getByUserUuid(userUuid);
+    if (!userEntity.credentials) {
+      throw new NotFoundException('User credentials not found');
     }
 
-    const isValidPassword = await this.userRepository.isPasswordValid(oldPassword, userEntity.password);
+    const isValidPassword = await this.userRepository.isPasswordValid(oldPassword, userEntity.credentials.password);
     if (!isValidPassword) {
       throw new BadRequestException('Invalid password');
     }
@@ -311,29 +246,16 @@ export class UserService {
       password: newPassword,
     };
 
-    const updatedUserEntity = await this.userRepository.updateById(currentUser.id, updateUserEntityDto);
+    const updatedUserEntity = await this.userRepository.updateById(userEntity.id, updateUserEntityDto);
     const user = this.userMapper.entityToModel(updatedUserEntity);
     this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
 
     return user;
   }
 
-  async updateImageByUserId(currentUser: AuthenticatedUserModel, file: MultipartFile): Promise<UserModel> {
+  async updateImageByUserUuid(userUuid: UUID, file: MultipartFile): Promise<UserModel> {
     this.logger.debug('Update user image by user ID');
-
-    if (!currentUser?.id) {
-      throw new BadRequestException('User ID undefined');
-    }
-
-    this.logger.debug(`Find user by ID: ${currentUser.id}`);
-    const filterById: FilterUserDto = {
-      id: currentUser.id,
-    };
-    const userEntity = await this.userRepository.findOne(filterById);
-    this.logger.debug(`User found: ${JSON.stringify(userEntity)}`);
-    if (!userEntity) {
-      throw new NotFoundException(`User not found with ID: ${currentUser.id}`);
-    }
+    const userEntity = await this.getByUserUuid(userUuid);
 
     const saveResponse = await this.storageService.saveImageToLocalPath(file);
     if (!saveResponse) {
@@ -386,8 +308,22 @@ export class UserService {
     return user;
   }
 
-  async deleteById(userUuid: UUID, currentUser: AuthenticatedUserModel): Promise<UserModel> {
+  async deleteByUuid(userUuid: UUID): Promise<UserModel> {
     this.logger.debug('Delete user by UUID');
+    const userEntity = await this.getByUserUuid(userUuid);
+
+    const deletedUserEntity = await this.userRepository.deleteById(userEntity.id);
+    const user = this.userMapper.entityToModel(deletedUserEntity);
+    this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
+
+    // Push new user event
+    const event = new UserChangeEvent(UserChangeEventType.DELETED, user, userUuid);
+    this.pushUserChangeEvent(event);
+
+    return user;
+  }
+
+  private async getByUserUuid(userUuid: UUID): Promise<UserWithRoleCredentialsAndOauthProviders> {
     if (!userUuid) {
       throw new BadRequestException('User UUID undefined');
     }
@@ -401,124 +337,100 @@ export class UserService {
     if (!userEntity) {
       throw new NotFoundException(`User not found with UUID: ${userUuid}`);
     }
-
-    const deletedUserEntity = await this.userRepository.deleteById(userEntity.id);
-    const user = this.userMapper.entityToModel(deletedUserEntity);
-    this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
-
-    // Push new user event
-    const event = new UserChangeEvent(UserChangeEventType.DELETED, user, currentUser.uuid);
-    this.pushUserChangeEvent(event);
-
-    return user;
+    return userEntity;
   }
 
-  async batchRegister(createUserDtos: CreateUserDto[]): Promise<void> {
-    if (!createUserDtos || createUserDtos.length <= 0) {
-      throw new BadRequestException('No users to process');
-    }
+  // async batchRegister(createUserDtos: CreateUserDto[]): Promise<void> {
+  //   if (!createUserDtos || createUserDtos.length <= 0) {
+  //     throw new BadRequestException('No users to process');
+  //   }
 
-    this.logger.debug(`Number of users to register: ${createUserDtos.length}`);
-    const rolesMap: Map<string, Role> = await this.roleRepository.findAllAsMap();
-    const userValidEmails: string[] = [];
-    const createValidUserDtos: CreateUserDto[] = [];
+  //   this.logger.debug(`Number of users to register: ${createUserDtos.length}`);
+  //   const rolesMap: Map<string, Role> = await this.roleRepository.findAllAsMap();
+  //   const userValidEmails: string[] = [];
+  //   const createValidUserDtos: CreateUserDto[] = [];
 
-    await Promise.all(
-      createUserDtos.map(async (createUserDto) => {
-        const { email } = createUserDto;
-        const createUserDtoAsClass = plainToInstance(CreateUserDto, createUserDto);
-        const errors: ValidationError[] = await validate(createUserDtoAsClass);
+  //   await Promise.all(
+  //     createUserDtos.map(async (createUserDto) => {
+  //       const { email } = createUserDto;
+  //       const createUserDtoAsClass = plainToInstance(CreateUserDto, createUserDto);
+  //       const errors: ValidationError[] = await validate(createUserDtoAsClass);
 
-        const isValid = !errors || errors.length <= 0;
-        if (!isValid) {
-          this.logger.error(
-            `User validation failed for user ${JSON.stringify(createUserDto)}: ${JSON.stringify(errors)}`,
-          );
-        } else {
-          userValidEmails.push(email);
-          createValidUserDtos.push(createUserDto);
-        }
-        return isValid;
-      }),
-    );
+  //       const isValid = !errors || errors.length <= 0;
+  //       if (!isValid) {
+  //         this.logger.error(
+  //           `User validation failed for user ${JSON.stringify(createUserDto)}: ${JSON.stringify(errors)}`,
+  //         );
+  //       } else {
+  //         userValidEmails.push(email);
+  //         createValidUserDtos.push(createUserDto);
+  //       }
+  //       return isValid;
+  //     }),
+  //   );
 
-    this.logger.debug(`Valid user emails: ${JSON.stringify(userValidEmails)}`);
-    if (userValidEmails.length <= 0) {
-      return;
-    }
+  //   this.logger.debug(`Valid user emails: ${JSON.stringify(userValidEmails)}`);
+  //   if (userValidEmails.length <= 0) {
+  //     return;
+  //   }
 
-    const filter: FilterUsersDto = {
-      emails: userValidEmails,
-    };
-    const userExistingEntities = await this.userRepository.findAllByFilter(filter);
-    const userExistingEmails = userExistingEntities.map((user) => user.email);
-    this.logger.debug(`Users already existing: ${JSON.stringify(userExistingEmails)}`);
+  //   const filter: FilterUsersDto = {
+  //     emails: userValidEmails,
+  //   };
+  //   const userExistingEntities = await this.userRepository.findAllByFilter(filter);
+  //   const userExistingEmails = userExistingEntities.map((user) => user.email);
+  //   this.logger.debug(`Users already existing: ${JSON.stringify(userExistingEmails)}`);
 
-    // Batch UPDATE
-    const createUserDtosToUpdate: CreateUserDto[] = createValidUserDtos.filter((createUserDto) => {
-      return userExistingEmails.includes(createUserDto.email);
-    });
-    const users = await this.batchUpdate(createUserDtosToUpdate, rolesMap);
-    this.logger.verbose(`Number of users updated succesfully: ${users.length}`);
+  //   // Batch UPDATE
+  //   const createUserDtosToUpdate: CreateUserDto[] = createValidUserDtos.filter((createUserDto) => {
+  //     return userExistingEmails.includes(createUserDto.email);
+  //   });
+  //   const users = await this.batchUpdate(createUserDtosToUpdate, rolesMap);
+  //   this.logger.verbose(`Number of users updated succesfully: ${users.length}`);
 
-    // Batch INSERT
-    const createUserDtosToInsert: CreateUserDto[] = createValidUserDtos.filter((createUserDto) => {
-      return !userExistingEmails.includes(createUserDto.email);
-    });
-    const rows = await this.batchInsert(createUserDtosToInsert, rolesMap);
-    this.logger.verbose(`Number of users inserted succesfully: ${rows}`);
-  }
+  //   // Batch INSERT
+  //   const createUserDtosToInsert: CreateUserDto[] = createValidUserDtos.filter((createUserDto) => {
+  //     return !userExistingEmails.includes(createUserDto.email);
+  //   });
+  //   const rows = await this.batchInsert(createUserDtosToInsert, rolesMap);
+  //   this.logger.verbose(`Number of users inserted succesfully: ${rows}`);
+  // }
 
-  private async batchUpdate(
-    createUserDtosToUpdate: CreateUserDto[],
-    rolesMap: Map<string, Role>,
-    // userExistingEntities: UserWithRole[],
-  ): Promise<UserWithRole[]> {
-    this.logger.debug(`Users to update: ${JSON.stringify(createUserDtosToUpdate)}`);
-    const updateUsersPromises: any[] = [];
+  // private async batchUpdate(
+  //   createUserDtosToUpdate: CreateUserDto[],
+  //   rolesMap: Map<string, Role>,
+  //   // userExistingEntities: UserWithRole[],
+  // ): Promise<UserWithRole[]> {
+  //   this.logger.debug(`Users to update: ${JSON.stringify(createUserDtosToUpdate)}`);
+  //   const updateUsersPromises: any[] = [];
 
-    createUserDtosToUpdate.forEach(async (createUserDto: CreateUserDto) => {
-      // const existingUser = userExistingEntities.find((u) => u.email === createUserDto.email);
-      // if (!existingUser) {
-      //   this.logger.error(`Cannot find existing user with email ${createUserDto.email}`);
-      //   return;
-      // }
-      const { email, name, role } = createUserDto;
-      const roleEntity = rolesMap.get(role);
-      if (!roleEntity || !roleEntity.id) {
-        this.logger.error(`Cannot find role entity with name ${role}`);
-        return;
-      }
+  //   createUserDtosToUpdate.forEach(async (createUserDto: CreateUserDto) => {
+  //     const { email, name, role } = createUserDto;
+  //     const roleEntity = rolesMap.get(role);
+  //     if (!roleEntity?.id) {
+  //       this.logger.error(`Cannot find role entity with name ${role}`);
+  //       return;
+  //     }
 
-      const updateUserEntityDto: UpdateUserEntityDto = {
-        name: name ? name : '',
-        isActive: true,
-        roleId: roleEntity.id,
-      };
-      updateUsersPromises.push(() => this.userRepository.updateByEmail(email, updateUserEntityDto));
-    });
+  //     const updateUserEntityDto: UpdateUserEntityDto = {
+  //       name,
+  //       isActive: true,
+  //       roleId: roleEntity.id,
+  //     };
+  //     updateUsersPromises.push(() => this.userRepository.updateByEmail(email, updateUserEntityDto));
+  //   });
 
-    const usersUpdated = await Promise.all(updateUsersPromises.map((p) => p().catch((err) => this.logger.error(err))));
-    this.logger.debug(`Users updated: ${JSON.stringify(usersUpdated)}`);
-    return usersUpdated;
-  }
+  //   const usersUpdated = await Promise.all(updateUsersPromises.map((p) => p().catch((err) => this.logger.error(err))));
+  //   this.logger.debug(`Users updated: ${JSON.stringify(usersUpdated)}`);
+  //   return usersUpdated;
+  // }
 
-  private async batchInsert(createUserDtosToInsert: CreateUserDto[], rolesMap: Map<string, Role>): Promise<number> {
-    this.logger.debug(`Users to insert: ${JSON.stringify(createUserDtosToInsert)}`);
-    if (createUserDtosToInsert.length <= 0) {
-      return 0;
-    }
-    this.logger.verbose(`Trying to insert ${createUserDtosToInsert.length} users`);
-    return this.userRepository.createMany(createUserDtosToInsert, rolesMap);
-  }
-
-  private generateRandomString(length: number): string {
-    let result = '';
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const charactersLength = characters.length;
-    for (let i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return result;
-  }
+  // private async batchInsert(createUserDtosToInsert: CreateUserDto[], rolesMap: Map<string, Role>): Promise<number> {
+  //   this.logger.debug(`Users to insert: ${JSON.stringify(createUserDtosToInsert)}`);
+  //   if (createUserDtosToInsert.length <= 0) {
+  //     return 0;
+  //   }
+  //   this.logger.verbose(`Trying to insert ${createUserDtosToInsert.length} users`);
+  //   return this.userRepository.createMany(createUserDtosToInsert, rolesMap);
+  // }
 }

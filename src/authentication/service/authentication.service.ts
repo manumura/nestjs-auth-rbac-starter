@@ -15,18 +15,19 @@ import { FilterUserDto } from 'src/user/dto/filter.user.dto';
 import { UserWithRole } from '../../../prisma/custom-types';
 import { appConfig } from '../../config/config';
 import { UserMapper } from '../../user/mapper/user.mapper';
+import { AuthenticatedUserModel } from '../../user/model/authenticated.user.model';
+import { OauthProvider } from '../../user/model/provider.model';
 import { Role } from '../../user/model/role.model';
-import { UserModel } from '../../user/model/user.model';
 import { OauthProviderRepository } from '../../user/repository/oauth-provider.repository';
 import { RoleRepository } from '../../user/repository/role.repository';
 import { UserRepository } from '../../user/repository/user.repository';
 import { LoginDto } from '../dto/login.dto';
+import { Oauth2FacebookLoginDto } from '../dto/oauth2.facebook.login.dto';
 import { Oauth2GoogleLoginDto } from '../dto/oauth2.google.login.dto';
-import { OauthProvider } from '../dto/provider';
 import { LoginModel } from '../model/login.model';
 import { TokenModel } from '../model/token.model';
 import { AuthenticationTokenRepository } from '../repository/authentication.token.repository';
-import { Oauth2FacebookLoginDto } from '../dto/oauth2.facebook.login.dto';
+import { UUID } from 'crypto';
 
 @Injectable()
 export class AuthenticationService {
@@ -52,16 +53,16 @@ export class AuthenticationService {
       active: true,
     };
     const userEntity = await this.userRepository.findOne(filter);
-    if (!userEntity) {
+    if (!userEntity || !userEntity.credentials) {
       throw new UnauthorizedException('Invalid email or password');
     }
-    const valid = await this.userRepository.isPasswordValid(password, userEntity.password);
+    const valid = await this.userRepository.isPasswordValid(password, userEntity.credentials.password);
     if (!valid) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
     const tokenModel = await this.generateAuthenticationTokens(userEntity);
-    const user = this.userMapper.entityToModel(userEntity);
+    const user = this.userMapper.entityToAuthenticatedUserModel(userEntity);
     const json = await bfj.stringify(user);
     this.logger.debug(`User logged in: ${json}`);
 
@@ -74,29 +75,75 @@ export class AuthenticationService {
     return loginModel;
   }
 
-  async logout(userId: number | undefined): Promise<void> {
-    if (!userId) {
-      throw new BadRequestException('User ID undefined');
+  async oauth2GoogleLogin(oauth2GoogleLoginDto: Oauth2GoogleLoginDto): Promise<LoginModel> {
+    try {
+      const { token } = oauth2GoogleLoginDto;
+      const googleUser = await this.verifyGoogleToken(token);
+      this.logger.log(`Google oauth2 login user: ${JSON.stringify(googleUser)}`);
+      if (!googleUser) {
+        throw new UnauthorizedException('Invalid Google oauth2 user');
+      }
+
+      return await this.oauth2Login({
+        id: googleUser.sub,
+        email: googleUser.email,
+        name: googleUser.name,
+        provider: OauthProvider.Google,
+      });
+    } catch (error) {
+      this.logger.error('Google oauth2 login failed', error.stack);
+      throw new InternalServerErrorException('Oauth2 login failed: ' + error.message);
     }
-    this.authenticationTokenRepository.remove(userId);
   }
 
-  async refreshToken(userId: number | undefined): Promise<LoginModel> {
-    if (!userId) {
-      throw new BadRequestException('User ID undefined');
+  async oauth2FacebookLogin(oauth2FacebookLoginDto: Oauth2FacebookLoginDto): Promise<LoginModel> {
+    try {
+      const { id, email, name } = oauth2FacebookLoginDto;
+      return await this.oauth2Login({
+        id,
+        email,
+        name,
+        provider: OauthProvider.Facebook,
+      });
+    } catch (error) {
+      this.logger.error('Google oauth2 login failed', error.stack);
+      throw new InternalServerErrorException('Oauth2 login failed: ' + error.message);
+    }
+  }
+
+  async logout(userUuid: UUID | undefined): Promise<void> {
+    if (!userUuid) {
+      throw new BadRequestException('User UUID undefined');
     }
 
     const filter: FilterUserDto = {
-      id: userId,
+      uuid: userUuid,
       active: true,
     };
     const userEntity = await this.userRepository.findOne(filter);
     if (!userEntity) {
-      throw new NotFoundException(`User not found with ID: ${userId}`);
+      throw new NotFoundException(`User not found with ID: ${userUuid}`);
+    }
+
+    this.authenticationTokenRepository.remove(userEntity.id);
+  }
+
+  async refreshToken(userUuid: UUID | undefined): Promise<LoginModel> {
+    if (!userUuid) {
+      throw new BadRequestException('User UUID undefined');
+    }
+
+    const filter: FilterUserDto = {
+      uuid: userUuid,
+      active: true,
+    };
+    const userEntity = await this.userRepository.findOne(filter);
+    if (!userEntity) {
+      throw new NotFoundException(`User not found with ID: ${userUuid}`);
     }
 
     const tokenModel = await this.generateAuthenticationTokens(userEntity);
-    const user = this.userMapper.entityToModel(userEntity);
+    const user = this.userMapper.entityToAuthenticatedUserModel(userEntity);
     const json = await bfj.stringify(user);
     this.logger.debug(`User refresh token: ${json}`);
 
@@ -140,7 +187,7 @@ export class AuthenticationService {
     return tokenModel;
   }
 
-  private generateIdToken(user: UserModel): string {
+  private generateIdToken(user: AuthenticatedUserModel): string {
     return this.jwtService.sign(
       { user },
       {
@@ -158,42 +205,6 @@ export class AuthenticationService {
   private getRefreshTokenExpiryDate(): Date {
     const now = moment().utc();
     return now.add(appConfig.REFRESH_TOKEN_EXPIRES_IN_AS_SECONDS, 'seconds').toDate();
-  }
-
-  async oauth2GoogleLogin(oauth2GoogleLoginDto: Oauth2GoogleLoginDto): Promise<LoginModel> {
-    try {
-      const { token } = oauth2GoogleLoginDto;
-      const googleUser = await this.verifyGoogleToken(token);
-      this.logger.log(`Google oauth2 login user: ${JSON.stringify(googleUser)}`);
-      if (!googleUser) {
-        throw new UnauthorizedException('Invalid Google oauth2 user');
-      }
-
-      return await this.oauth2Login({
-        id: googleUser.sub,
-        email: googleUser.email,
-        name: googleUser.name,
-        provider: OauthProvider.Google,
-      });
-    } catch (error) {
-      this.logger.error('Google oauth2 login failed', error.stack);
-      throw new InternalServerErrorException('Oauth2 login failed: ' + error.message);
-    }
-  }
-
-  async oauth2FacebookLogin(oauth2FacebookLoginDto: Oauth2FacebookLoginDto): Promise<LoginModel> {
-    try {
-      const { id, email, name } = oauth2FacebookLoginDto;
-      return await this.oauth2Login({
-        id,
-        email,
-        name,
-        provider: OauthProvider.Facebook,
-      });
-    } catch (error) {
-      this.logger.error('Google oauth2 login failed', error.stack);
-      throw new InternalServerErrorException('Oauth2 login failed: ' + error.message);
-    }
   }
 
   private async oauth2Login({
@@ -221,15 +232,15 @@ export class AuthenticationService {
       throw new NotFoundException(`Oauth provider not found by name: ${provider}`);
     }
 
-    let userEntity = await this.userRepository.findOneOauth({
+    let userEntity = await this.userRepository.findOneByOauthProvider({
       oauthProviderId: oauthProviderEntity.id,
       externalUserId: id,
     });
 
     if (!userEntity) {
       userEntity = await this.userRepository.createOauth(
-        email ? provider + '#' + email : 'N/A#' + id,
-        name ?? 'N/A',
+        email ?? id + '@' + provider.toLowerCase() + '.com',
+        name ?? provider.toLowerCase() + id,
         roleEntity.id,
         oauthProviderEntity.id,
         id,
@@ -240,7 +251,7 @@ export class AuthenticationService {
     }
 
     const tokenModel = await this.generateAuthenticationTokens(userEntity);
-    const user = this.userMapper.entityToModel(userEntity);
+    const user = this.userMapper.entityToAuthenticatedUserModel(userEntity);
     const json = await bfj.stringify(user);
     this.logger.debug(`User refresh token: ${json}`);
 

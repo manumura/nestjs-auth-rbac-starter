@@ -1,4 +1,14 @@
-import { Body, Controller, HttpCode, Logger, Post, Res, UseGuards, ValidationPipe } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  HttpCode,
+  Logger,
+  Post,
+  Res,
+  UseGuards,
+  ValidationPipe,
+} from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -66,12 +76,15 @@ export class AuthenticationController {
   @ApiForbiddenResponse()
   @ApiOkResponse({ type: UserModel })
   async logout(
-    @GetUser() user: AuthenticatedUserModel,
+    @GetUser() currentUser: AuthenticatedUserModel,
     @Res({ passthrough: true }) response: FastifyReply,
   ): Promise<void> {
-    this.logger.log(`User with email ${user.email} logged out`);
+    this.logger.log(`User ${currentUser.uuid} logged out`);
+    if (!currentUser?.uuid) {
+      throw new BadRequestException('User UUID is required');
+    }
     clearAuthCookies(response);
-    await this.authenticationService.logout(user.id);
+    await this.authenticationService.logout(currentUser.uuid);
   }
 
   @Post('/v1/refresh-token')
@@ -82,11 +95,14 @@ export class AuthenticationController {
   @ApiForbiddenResponse()
   @ApiOkResponse({ type: LoginModel })
   async refreshToken(
-    @GetUser() user: AuthenticatedUserModel,
+    @GetUser() currentUser: AuthenticatedUserModel,
     @Res({ passthrough: true }) response: FastifyReply,
   ): Promise<LoginModel> {
-    this.logger.log(`Refresh token for user with email ${user.email}`);
-    const loginModel = await this.authenticationService.refreshToken(user.id);
+    this.logger.log(`Refresh token for user ${currentUser.uuid}`);
+    if (!currentUser?.uuid) {
+      throw new BadRequestException('User UUID is required');
+    }
+    const loginModel = await this.authenticationService.refreshToken(currentUser.uuid);
     setAuthCookies(response, loginModel);
     return loginModel;
   }
@@ -105,7 +121,8 @@ export class AuthenticationController {
     return loginModel;
   }
 
-  // TODO email password to separate table user_credentials
+  // TODO batch create / update + unit tests
+  // TODO test when delete authentication token in DB
   @Post('/v1/oauth2/facebook')
   @HttpCode(200)
   @ApiOkResponse({ type: LoginModel })

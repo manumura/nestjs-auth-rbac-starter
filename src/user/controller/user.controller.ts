@@ -98,10 +98,9 @@ export class UserController {
   updateUserByUuid(
     @Param('uuid', ParseUUIDPipe) uuid: UUID,
     @Body(ValidationPipe) updateUserDto: UpdateUserDto,
-    @GetUser() currentUser: AuthenticatedUserModel,
   ): Promise<UserModel> {
     this.logger.log(`Update user with UUID ${uuid}`);
-    return this.userService.updateUserByUuid(uuid, updateUserDto, currentUser);
+    return this.userService.updateByUuid(uuid, updateUserDto);
   }
 
   @Delete('/v1/users/:uuid')
@@ -111,12 +110,9 @@ export class UserController {
   @ApiUnauthorizedResponse()
   @ApiForbiddenResponse()
   @ApiOkResponse({ type: UserModel })
-  deleteUserByUuid(
-    @Param('uuid', ParseUUIDPipe) uuid: UUID,
-    @GetUser() currentUser: AuthenticatedUserModel,
-  ): Promise<UserModel> {
+  deleteUserByUuid(@Param('uuid', ParseUUIDPipe) uuid: UUID): Promise<UserModel> {
     this.logger.log(`Delete user with UUID ${uuid}`);
-    return this.userService.deleteById(uuid, currentUser);
+    return this.userService.deleteByUuid(uuid);
   }
 
   @Sse('/v1/events/users')
@@ -127,7 +123,6 @@ export class UserController {
   @ApiForbiddenResponse()
   @ApiOkResponse({ type: Observable<UserChangeEvent> })
   streamUserChangeEvents(): Observable<UserChangeEvent | null> {
-    // this.logger.log('Subscribe to user change events');
     return this.userService.userChangeEvent$;
   }
 }

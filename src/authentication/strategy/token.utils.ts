@@ -5,11 +5,11 @@ const extractToken = (cookies: any, headers: IncomingHttpHeaders, cookieName: st
   const logger = new Logger('extractToken');
   let token: string | undefined = undefined;
 
-  if (cookies && cookies[cookieName]) {
+  if (cookies?.[cookieName]) {
     // Check token in cookies first
     logger.debug(`Checking token in cookies for ${cookieName}`);
     token = cookies[cookieName];
-  } else if (headers && headers.authorization) {
+  } else if (headers?.authorization) {
     // Check token in headers
     logger.debug('Checking token in authorization header');
     const authorizationHeader = headers.authorization;

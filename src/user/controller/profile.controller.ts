@@ -22,12 +22,12 @@ import { FastifyRequest } from 'fastify';
 import { UserActiveGuard } from '../../authentication/guard/user.active.guard';
 import { ApiFile } from '../../shared/decorator/ApiFile.decorator';
 import { GetUser } from '../../shared/decorator/get-user.decorator';
+import { UpdatePasswordDto } from '../dto/update.password.dto';
 import { UpdateProfileDto } from '../dto/update.profile.dto';
+import { UserMapper } from '../mapper/user.mapper';
+import { AuthenticatedUserModel } from '../model/authenticated.user.model';
 import { UserModel } from '../model/user.model';
 import { UserService } from '../service/user.service';
-import { AuthenticatedUserModel } from '../model/authenticated.user.model';
-import { UserMapper } from '../mapper/user.mapper';
-import { UpdatePasswordDto } from '../dto/update.password.dto';
 
 @Controller()
 export class ProfileController {
@@ -44,9 +44,12 @@ export class ProfileController {
   @ApiUnauthorizedResponse()
   @ApiForbiddenResponse()
   @ApiOkResponse({ type: UserModel })
-  getProfile(@GetUser() currentUser: AuthenticatedUserModel): UserModel {
-    this.logger.log(`Get profile for user with email ${currentUser.email}`);
-    return this.userMapper.authenticatedUserModelToUserModel(currentUser);
+  getProfile(@GetUser() currentUser: AuthenticatedUserModel): Promise<UserModel> {
+    this.logger.log(`Get profile for user ${currentUser.uuid}`);
+    if (!currentUser?.uuid) {
+      throw new BadRequestException('User UUID is required');
+    }
+    return this.userService.findByUuid(currentUser.uuid);
   }
 
   @Put('/v1/profile')
@@ -60,11 +63,11 @@ export class ProfileController {
     @Body(ValidationPipe) updateProfileDto: UpdateProfileDto,
     @GetUser() currentUser: AuthenticatedUserModel,
   ): Promise<UserModel> {
-    this.logger.log(`Update profile for user with email ${currentUser.email}`);
-    if (!currentUser?.id) {
-      throw new BadRequestException('User ID is required');
+    this.logger.log(`Update profile for user ${currentUser.uuid}`);
+    if (!currentUser?.uuid) {
+      throw new BadRequestException('User UUID is required');
     }
-    return this.userService.updateProfileById(currentUser, updateProfileDto);
+    return this.userService.updateProfileByUserUuid(currentUser.uuid, updateProfileDto);
   }
 
   @Put('/v1/profile/password')
@@ -78,11 +81,11 @@ export class ProfileController {
     @Body(ValidationPipe) updatePasswordDto: UpdatePasswordDto,
     @GetUser() currentUser: AuthenticatedUserModel,
   ): Promise<UserModel> {
-    this.logger.log(`Update password for user with email ${currentUser.email}`);
-    if (!currentUser?.id) {
-      throw new BadRequestException('User ID is required');
+    this.logger.log(`Update password for user ${currentUser.uuid}`);
+    if (!currentUser?.uuid) {
+      throw new BadRequestException('User UUID is required');
     }
-    return this.userService.updatePasswordByUserId(currentUser, updatePasswordDto);
+    return this.userService.updatePasswordByUserUuid(currentUser.uuid, updatePasswordDto);
   }
 
   @Put('/v1/profile/image')
@@ -98,9 +101,9 @@ export class ProfileController {
     @Req() req: FastifyRequest,
     @GetUser() currentUser: AuthenticatedUserModel,
   ): Promise<UserModel> {
-    this.logger.log(`Update profile image for user with email ${currentUser.email}`);
-    if (!currentUser?.id) {
-      throw new BadRequestException('User ID is required');
+    this.logger.log(`Update profile image for user ${currentUser.uuid}`);
+    if (!currentUser?.uuid) {
+      throw new BadRequestException('User UUID is required');
     }
 
     const isMultipart = req.isMultipart();
@@ -113,6 +116,6 @@ export class ProfileController {
       throw new BadRequestException('File not found');
     }
 
-    return this.userService.updateImageByUserId(currentUser, file);
+    return this.userService.updateImageByUserUuid(currentUser.uuid, file);
   }
 }

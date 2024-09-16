@@ -8,17 +8,7 @@ import { UUID } from 'crypto';
 export class AuthenticatedUserModel {
   @Expose()
   @ApiProperty()
-  public readonly id: number;
-
-  @Expose()
-  @ApiProperty()
   public readonly uuid: UUID;
-
-  @Expose()
-  @ApiProperty()
-  public email: string;
-
-  public password: string;
 
   @Expose()
   @ApiProperty()
