@@ -57,13 +57,13 @@ export class AuthenticationController {
   @HttpCode(200)
   @ApiOkResponse({ type: LoginModel })
   @ApiBadRequestResponse({ description: 'Validation failed' })
-  // https://docs.nestjs.com/techniques/cookies
   async login(
     @Body(ValidationPipe) loginDto: LoginDto,
     @Res({ passthrough: true }) response: FastifyReply,
   ): Promise<LoginModel> {
     this.logger.log(`Login user with email ${loginDto.email}`);
     const login = await this.authenticationService.login(loginDto);
+    // https://docs.nestjs.com/techniques/cookies
     setAuthCookies(response, login);
     return login;
   }
@@ -78,13 +78,13 @@ export class AuthenticationController {
   async logout(
     @GetUser() currentUser: AuthenticatedUserModel,
     @Res({ passthrough: true }) response: FastifyReply,
-  ): Promise<void> {
+  ): Promise<UserModel> {
     this.logger.log(`User ${currentUser.uuid} logged out`);
     if (!currentUser?.uuid) {
       throw new BadRequestException('User UUID is required');
     }
     clearAuthCookies(response);
-    await this.authenticationService.logout(currentUser.uuid);
+    return await this.authenticationService.logout(currentUser.uuid);
   }
 
   @Post('/v1/refresh-token')
@@ -121,8 +121,10 @@ export class AuthenticationController {
     return loginModel;
   }
 
+  // TODO build scripts
+  // TODO password rules
+  // TODO email verification
   // TODO batch create / update + unit tests
-  // TODO test when delete authentication token in DB
   @Post('/v1/oauth2/facebook')
   @HttpCode(200)
   @ApiOkResponse({ type: LoginModel })

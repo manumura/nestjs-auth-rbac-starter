@@ -1,15 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
 import moment from 'moment';
 import { UserWithRoleCredentialsAndOauthProviders } from '../../../prisma/custom-types';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { appConfig } from '../../config/config';
 import { PageModel } from '../../shared/model/page.model';
+import { generateHashedPassword } from '../../shared/util/utils';
 import { FilterOauthUserDto } from '../dto/filter.oauth.user.dto';
 import { FilterUserDto } from '../dto/filter.user.dto';
 import { GetUsersDto } from '../dto/get.users.dto';
 import { UpdateUserEntityDto } from '../dto/update.user.entity.dto';
+import { FilterUsersDto } from '../dto/filter.users.dto';
 
 @Injectable()
 export class UserRepository {
@@ -17,10 +17,22 @@ export class UserRepository {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async isPasswordValid(password1: string, password2: string): Promise<boolean> {
-    const isValid = await bcrypt.compare(password1, password2);
-    return isValid;
-  }
+  private static include = {
+    role: true,
+    credentials: true,
+    oauthProviders: {
+      select: {
+        externalUserId: true,
+        email: true,
+        oauthProvider: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    },
+  };
 
   async create(
     email: string,
@@ -28,7 +40,7 @@ export class UserRepository {
     password: string,
     roleId: number,
   ): Promise<UserWithRoleCredentialsAndOauthProviders> {
-    const hashedPassword = await this.generateHashedPassword(password);
+    const hashedPassword = await generateHashedPassword(password);
     const userEntityToCreate: Prisma.UserCreateInput = {
       name: name ?? '',
       isActive: true,
@@ -48,22 +60,7 @@ export class UserRepository {
 
     return this.prisma.user.create({
       data: userEntityToCreate,
-      include: {
-        role: true,
-        credentials: true,
-        oauthProviders: {
-          select: {
-            externalUserId: true,
-            email: true,
-            oauthProvider: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
+      include: UserRepository.include,
     });
   }
 
@@ -94,22 +91,7 @@ export class UserRepository {
 
     return this.prisma.user.create({
       data: userEntityToCreate,
-      include: {
-        role: true,
-        credentials: true,
-        oauthProviders: {
-          select: {
-            externalUserId: true,
-            email: true,
-            oauthProvider: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
+      include: UserRepository.include,
     });
   }
 
@@ -118,7 +100,8 @@ export class UserRepository {
     updateUserEntityDto: UpdateUserEntityDto,
   ): Promise<UserWithRoleCredentialsAndOauthProviders> {
     const { email, password, name, isActive, imageId, imageUrl, roleId } = updateUserEntityDto;
-    const hashedPassword = password ? await this.generateHashedPassword(password) : undefined;
+    const hashedPassword = password ? await generateHashedPassword(password) : undefined;
+
     const userEntityToUpdate: Prisma.UserUpdateInput = {
       ...(name ? { name } : {}),
       ...(roleId ? { roleId } : {}),
@@ -145,22 +128,7 @@ export class UserRepository {
         id,
       },
       data: userEntityToUpdate,
-      include: {
-        role: true,
-        credentials: true,
-        oauthProviders: {
-          select: {
-            externalUserId: true,
-            email: true,
-            oauthProvider: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
+      include: UserRepository.include,
     });
   }
 
@@ -195,22 +163,7 @@ export class UserRepository {
       orderBy: {
         createdAt: 'desc',
       },
-      include: {
-        role: true,
-        credentials: true,
-        oauthProviders: {
-          select: {
-            externalUserId: true,
-            email: true,
-            oauthProvider: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
+      include: UserRepository.include,
       skip,
       take,
     });
@@ -227,6 +180,51 @@ export class UserRepository {
       totalElements,
     };
     return pageable;
+  }
+
+  async findAllByFilter(filter: FilterUsersDto): Promise<UserWithRoleCredentialsAndOauthProviders[]> {
+    const { active, role, langCode, emails } = filter;
+
+    const entities = this.prisma.user.findMany({
+      where: {
+        ...(active !== undefined && active !== null ? { isActive: active.toString().toLowerCase() === 'true' } : {}),
+        ...(role
+          ? {
+              role: {
+                name: role,
+              },
+            }
+          : {}),
+        ...(langCode ? { langCode: langCode } : {}),
+        ...(emails
+          ? {
+              credentials: {
+                email: {
+                  in: emails,
+                },
+              },
+            }
+          : {}),
+      },
+      include: {
+        role: true,
+        credentials: true,
+        oauthProviders: {
+          select: {
+            externalUserId: true,
+            email: true,
+            oauthProvider: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return entities;
   }
 
   async findOne(filter: FilterUserDto): Promise<UserWithRoleCredentialsAndOauthProviders | null> {
@@ -250,22 +248,7 @@ export class UserRepository {
             }
           : {}),
       },
-      include: {
-        role: true,
-        credentials: true,
-        oauthProviders: {
-          select: {
-            externalUserId: true,
-            email: true,
-            oauthProvider: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
+      include: UserRepository.include,
     });
   }
 
@@ -286,22 +269,7 @@ export class UserRepository {
           },
         },
       },
-      include: {
-        role: true,
-        credentials: true,
-        oauthProviders: {
-          select: {
-            externalUserId: true,
-            email: true,
-            oauthProvider: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
+      include: UserRepository.include,
     });
   }
 
@@ -316,22 +284,7 @@ export class UserRepository {
           },
         },
       },
-      include: {
-        role: true,
-        credentials: true,
-        oauthProviders: {
-          select: {
-            externalUserId: true,
-            email: true,
-            oauthProvider: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
+      include: UserRepository.include,
     });
   }
 
@@ -365,27 +318,7 @@ export class UserRepository {
       where: {
         id: userId,
       },
-      include: {
-        role: true,
-        credentials: true,
-        oauthProviders: {
-          select: {
-            externalUserId: true,
-            email: true,
-            oauthProvider: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
+      include: UserRepository.include,
     });
-  }
-
-  private async generateHashedPassword(password: string): Promise<string> {
-    const hashedPassword = await bcrypt.hash(password, appConfig.SALT_ROUNDS);
-    return hashedPassword;
   }
 }

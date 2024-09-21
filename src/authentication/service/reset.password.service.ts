@@ -118,18 +118,6 @@ export class ResetPasswordService {
           },
         });
 
-        // TODO test delete reset password token in DB
-        // const { role, credentials, ...userEntityToUpdate } = userEntity;
-        // userEntityToUpdate.password = hashedPassword;
-        // const updatedUserEntity = await tx.user.update({
-        //   where: {
-        //     id: userEntity.id,
-        //   },
-        //   data: userEntityToUpdate,
-        //   include: {
-        //     role: true,
-        //   },
-        // });
         this.logger.debug('Delete reset password token by token');
         await tx.resetPasswordToken.delete({
           where: {

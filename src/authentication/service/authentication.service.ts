@@ -28,6 +28,8 @@ import { LoginModel } from '../model/login.model';
 import { TokenModel } from '../model/token.model';
 import { AuthenticationTokenRepository } from '../repository/authentication.token.repository';
 import { UUID } from 'crypto';
+import { UserModel } from '../../user/model/user.model';
+import { isPasswordValid } from '../../shared/util/utils';
 
 @Injectable()
 export class AuthenticationService {
@@ -56,7 +58,7 @@ export class AuthenticationService {
     if (!userEntity || !userEntity.credentials) {
       throw new UnauthorizedException('Invalid email or password');
     }
-    const valid = await this.userRepository.isPasswordValid(password, userEntity.credentials.password);
+    const valid = await isPasswordValid(password, userEntity.credentials.password);
     if (!valid) {
       throw new UnauthorizedException('Invalid email or password');
     }
@@ -111,7 +113,7 @@ export class AuthenticationService {
     }
   }
 
-  async logout(userUuid: UUID | undefined): Promise<void> {
+  async logout(userUuid: UUID | undefined): Promise<UserModel> {
     if (!userUuid) {
       throw new BadRequestException('User UUID undefined');
     }
@@ -126,6 +128,7 @@ export class AuthenticationService {
     }
 
     this.authenticationTokenRepository.remove(userEntity.id);
+    return this.userMapper.entityToModel(userEntity);
   }
 
   async refreshToken(userUuid: UUID | undefined): Promise<LoginModel> {

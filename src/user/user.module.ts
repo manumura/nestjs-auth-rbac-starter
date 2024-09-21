@@ -8,6 +8,7 @@ import { UserController } from './controller/user.controller';
 import { UserMapper } from './mapper/user.mapper';
 import { RoleRepository } from './repository/role.repository';
 import { UserRepository } from './repository/user.repository';
+import { UserBulkService } from './service/user.bulk.service';
 import { UserService } from './service/user.service';
 import { IsUserEmailAlreadyExistConstraint } from './validation/IsUserEmailAlreadyExist';
 
@@ -17,6 +18,7 @@ import { IsUserEmailAlreadyExistConstraint } from './validation/IsUserEmailAlrea
   providers: [
     PrismaService,
     UserService,
+    UserBulkService,
     EmailService,
     StorageService,
     UserMapper,

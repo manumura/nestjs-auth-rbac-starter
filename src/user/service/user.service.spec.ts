@@ -1,12 +1,14 @@
 import { MailerModule } from '@nestjs-modules/mailer';
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { randomUUID } from 'crypto';
 import { UserWithRole } from '../../../prisma/custom-types';
 import { ResetPasswordTokenMapper } from '../../authentication/mapper/reset.password.token.mapper';
 import { AuthenticationTokenRepository } from '../../authentication/repository/authentication.token.repository';
 import { ResetPasswordTokenRepository } from '../../authentication/repository/reset.password.token.repository';
 import { EmailService } from '../../notification/email.service';
 import { PageModel } from '../../shared/model/page.model';
+import { StorageService } from '../../storage/storage.service';
 import { GetUsersDto } from '../dto/get.users.dto';
 import { UserMapper } from '../mapper/user.mapper';
 import { Role } from '../model/role.model';
@@ -14,12 +16,8 @@ import { UserModel } from '../model/user.model';
 import { RoleRepository } from '../repository/role.repository';
 import { UserRepository } from '../repository/user.repository';
 import { UserService } from './user.service';
-import { randomUUID } from 'crypto';
-import { StorageService } from '../../storage/storage.service';
-import { mock } from 'node:test';
 
 const mockUserRepository = () => ({
-  isPasswordValid: jest.fn(),
   create: jest.fn(),
   createMany: jest.fn(),
   updateById: jest.fn(),

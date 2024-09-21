@@ -32,6 +32,7 @@ import { UserChangeEvent, UserChangeEventType } from '../model/user.change.event
 import { UserModel } from '../model/user.model';
 import { RoleRepository } from '../repository/role.repository';
 import { UserRepository } from '../repository/user.repository';
+import { isPasswordValid } from '../../shared/util/utils';
 
 @Injectable()
 export class UserService {
@@ -237,7 +238,7 @@ export class UserService {
       throw new NotFoundException('User credentials not found');
     }
 
-    const isValidPassword = await this.userRepository.isPasswordValid(oldPassword, userEntity.credentials.password);
+    const isValidPassword = await isPasswordValid(oldPassword, userEntity.credentials.password);
     if (!isValidPassword) {
       throw new BadRequestException('Invalid password');
     }
@@ -339,98 +340,4 @@ export class UserService {
     }
     return userEntity;
   }
-
-  // async batchRegister(createUserDtos: CreateUserDto[]): Promise<void> {
-  //   if (!createUserDtos || createUserDtos.length <= 0) {
-  //     throw new BadRequestException('No users to process');
-  //   }
-
-  //   this.logger.debug(`Number of users to register: ${createUserDtos.length}`);
-  //   const rolesMap: Map<string, Role> = await this.roleRepository.findAllAsMap();
-  //   const userValidEmails: string[] = [];
-  //   const createValidUserDtos: CreateUserDto[] = [];
-
-  //   await Promise.all(
-  //     createUserDtos.map(async (createUserDto) => {
-  //       const { email } = createUserDto;
-  //       const createUserDtoAsClass = plainToInstance(CreateUserDto, createUserDto);
-  //       const errors: ValidationError[] = await validate(createUserDtoAsClass);
-
-  //       const isValid = !errors || errors.length <= 0;
-  //       if (!isValid) {
-  //         this.logger.error(
-  //           `User validation failed for user ${JSON.stringify(createUserDto)}: ${JSON.stringify(errors)}`,
-  //         );
-  //       } else {
-  //         userValidEmails.push(email);
-  //         createValidUserDtos.push(createUserDto);
-  //       }
-  //       return isValid;
-  //     }),
-  //   );
-
-  //   this.logger.debug(`Valid user emails: ${JSON.stringify(userValidEmails)}`);
-  //   if (userValidEmails.length <= 0) {
-  //     return;
-  //   }
-
-  //   const filter: FilterUsersDto = {
-  //     emails: userValidEmails,
-  //   };
-  //   const userExistingEntities = await this.userRepository.findAllByFilter(filter);
-  //   const userExistingEmails = userExistingEntities.map((user) => user.email);
-  //   this.logger.debug(`Users already existing: ${JSON.stringify(userExistingEmails)}`);
-
-  //   // Batch UPDATE
-  //   const createUserDtosToUpdate: CreateUserDto[] = createValidUserDtos.filter((createUserDto) => {
-  //     return userExistingEmails.includes(createUserDto.email);
-  //   });
-  //   const users = await this.batchUpdate(createUserDtosToUpdate, rolesMap);
-  //   this.logger.verbose(`Number of users updated succesfully: ${users.length}`);
-
-  //   // Batch INSERT
-  //   const createUserDtosToInsert: CreateUserDto[] = createValidUserDtos.filter((createUserDto) => {
-  //     return !userExistingEmails.includes(createUserDto.email);
-  //   });
-  //   const rows = await this.batchInsert(createUserDtosToInsert, rolesMap);
-  //   this.logger.verbose(`Number of users inserted succesfully: ${rows}`);
-  // }
-
-  // private async batchUpdate(
-  //   createUserDtosToUpdate: CreateUserDto[],
-  //   rolesMap: Map<string, Role>,
-  //   // userExistingEntities: UserWithRole[],
-  // ): Promise<UserWithRole[]> {
-  //   this.logger.debug(`Users to update: ${JSON.stringify(createUserDtosToUpdate)}`);
-  //   const updateUsersPromises: any[] = [];
-
-  //   createUserDtosToUpdate.forEach(async (createUserDto: CreateUserDto) => {
-  //     const { email, name, role } = createUserDto;
-  //     const roleEntity = rolesMap.get(role);
-  //     if (!roleEntity?.id) {
-  //       this.logger.error(`Cannot find role entity with name ${role}`);
-  //       return;
-  //     }
-
-  //     const updateUserEntityDto: UpdateUserEntityDto = {
-  //       name,
-  //       isActive: true,
-  //       roleId: roleEntity.id,
-  //     };
-  //     updateUsersPromises.push(() => this.userRepository.updateByEmail(email, updateUserEntityDto));
-  //   });
-
-  //   const usersUpdated = await Promise.all(updateUsersPromises.map((p) => p().catch((err) => this.logger.error(err))));
-  //   this.logger.debug(`Users updated: ${JSON.stringify(usersUpdated)}`);
-  //   return usersUpdated;
-  // }
-
-  // private async batchInsert(createUserDtosToInsert: CreateUserDto[], rolesMap: Map<string, Role>): Promise<number> {
-  //   this.logger.debug(`Users to insert: ${JSON.stringify(createUserDtosToInsert)}`);
-  //   if (createUserDtosToInsert.length <= 0) {
-  //     return 0;
-  //   }
-  //   this.logger.verbose(`Trying to insert ${createUserDtosToInsert.length} users`);
-  //   return this.userRepository.createMany(createUserDtosToInsert, rolesMap);
-  // }
 }

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -9,6 +10,7 @@ import {
   Post,
   Put,
   Query,
+  Req,
   Sse,
   UseGuards,
   ValidationPipe,
@@ -17,18 +19,25 @@ import { AuthGuard } from '@nestjs/passport';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
+  ApiConsumes,
   ApiCreatedResponse,
   ApiForbiddenResponse,
   ApiOkResponse,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { UUID } from 'crypto';
+import csvParser from 'csv-parser';
+import { FastifyRequest } from 'fastify';
 import { Observable } from 'rxjs';
 import { RolesGuard } from '../../authentication/guard/roles.guard';
 import { UserActiveGuard } from '../../authentication/guard/user.active.guard';
+import { ApiFile } from '../../shared/decorator/ApiFile.decorator';
 import { GetUser } from '../../shared/decorator/get-user.decorator';
 import { Roles } from '../../shared/decorator/roles.decorator';
+import { MessageModel } from '../../shared/model/message.model';
 import { PageModel } from '../../shared/model/page.model';
+import { StorageService } from '../../storage/storage.service';
+import { CreateBulkUserDto } from '../dto/create.bulk.user.dto';
 import { CreateUserDto } from '../dto/create.user.dto';
 import { GetUsersDto } from '../dto/get.users.dto';
 import { UpdateUserDto } from '../dto/update.user.dto';
@@ -37,13 +46,18 @@ import { Role } from '../model/role.model';
 import { UserChangeEvent } from '../model/user.change.event';
 import { UserModel } from '../model/user.model';
 import { UserPageModel } from '../model/user.page.model';
+import { UserBulkService } from '../service/user.bulk.service';
 import { UserService } from '../service/user.service';
 
 @Controller()
 export class UserController {
   private logger = new Logger('UserController');
 
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly userBulkService: UserBulkService,
+    private readonly storageService: StorageService,
+  ) {}
 
   @Post('/v1/users')
   @Roles(Role.ADMIN)
@@ -124,5 +138,59 @@ export class UserController {
   @ApiOkResponse({ type: Observable<UserChangeEvent> })
   streamUserChangeEvents(): Observable<UserChangeEvent | null> {
     return this.userService.userChangeEvent$;
+  }
+
+  @Post('/v1/bulk/users')
+  @Roles(Role.ADMIN)
+  @UseGuards(AuthGuard(), UserActiveGuard, RolesGuard)
+  @ApiConsumes('multipart/form-data')
+  @ApiFile('users')
+  @ApiBearerAuth()
+  @ApiUnauthorizedResponse()
+  @ApiForbiddenResponse()
+  @ApiCreatedResponse({
+    description: 'The users have been successfully created.',
+    type: UserModel,
+  })
+  @ApiBadRequestResponse({ description: 'Validation failed' })
+  async batchRegistration(@Req() req: FastifyRequest) {
+    const isMultipart = req.isMultipart();
+    if (!isMultipart) {
+      throw new BadRequestException('multipart/form-data expected.');
+    }
+
+    const file = await req.file();
+    if (!file) {
+      throw new BadRequestException('File not found');
+    }
+    const response = await this.storageService.saveCsvToLocalPath(file);
+    if (!response) {
+      throw new BadRequestException('Error while saving file');
+    }
+
+    const users: CreateUserDto[] = [];
+    const transform = csvParser(['email', 'name']);
+
+    const onData = async (data) => {
+      const user: CreateBulkUserDto = {
+        email: data['email'],
+        name: data['name'],
+        role: Role.USER,
+      };
+      users.push(user);
+    };
+
+    const onEnd = async () => {
+      this.logger.verbose(`File processed successfully: ${response.filename}`);
+      // Delete file uploaded
+      this.storageService.deleteFromLocalPath(response.filepath);
+      await this.userBulkService.bulkRegister(users);
+    };
+
+    this.storageService.readFile(response.filepath, transform, onData, onEnd);
+    const message: MessageModel = {
+      message: 'File submitted succesfully, processing users asynchronously',
+    };
+    return message;
   }
 }

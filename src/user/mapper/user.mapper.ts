@@ -8,21 +8,6 @@ import { OauthProvider } from '../model/provider.model';
 
 @Injectable()
 export class UserMapper {
-  // TODO delete
-  // public entitiesToModels(entities: UserWithRole[]): UserModel[] {
-  //   if (!entities) {
-  //     return [];
-  //   }
-  //   const models = entities.filter((entity) => !!entity).map((entity) => this.entityToModel(entity));
-  //   return models;
-  // }
-
-  // public entityToModel(entity: UserWithRole): UserModel {
-  //   const model = plainToInstance(UserModel, entity);
-  //   model.role = Role[entity.role?.name];
-  //   return model;
-  // }
-
   public entityToAuthenticatedUserModel(entity: UserWithRole): AuthenticatedUserModel {
     const model = plainToInstance(AuthenticatedUserModel, entity);
     model.role = Role[entity.role?.name];

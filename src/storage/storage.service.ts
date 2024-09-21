@@ -7,7 +7,6 @@ import { extname } from 'path';
 import { Transform, pipeline } from 'stream';
 import util from 'util';
 import { UploadResponseModel } from '../shared/model/upload.response.model';
-import { UUID } from 'crypto';
 
 @Injectable()
 export class StorageService {
@@ -67,14 +66,18 @@ export class StorageService {
     );
   }
 
+  async saveCsvToLocalPath(multipartFile: MultipartFile): Promise<UploadResponseModel | null> {
+    return this.saveToLocalPath(multipartFile, /(csv)$/, 'File is not a CSV');
+  }
+
   private async saveToLocalPath(
     multipartFile: MultipartFile,
-    mimeTypesRegex?: any,
+    mimeTypesRegex?: RegExp,
     validationErrorMessage?: string,
   ): Promise<UploadResponseModel | null> {
     // https://backend.cafe/fastify-multipart-upload
     this.logger.verbose(`File received: ${multipartFile.filename} (${multipartFile.mimetype})`);
-    if (mimeTypesRegex && !multipartFile.mimetype.match(mimeTypesRegex)) {
+    if (mimeTypesRegex && !mimeTypesRegex.exec(multipartFile.mimetype)) {
       throw new BadRequestException(validationErrorMessage);
     }
 
