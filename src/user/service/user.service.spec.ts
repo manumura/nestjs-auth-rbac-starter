@@ -2,7 +2,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { randomUUID } from 'crypto';
-import { UserWithRole } from '../../../prisma/custom-types';
+import { UserWithRole, UserWithRoleCredentialsAndOauthProviders } from '../../../prisma/custom-types';
 import { ResetPasswordTokenMapper } from '../../authentication/mapper/reset.password.token.mapper';
 import { AuthenticationTokenRepository } from '../../authentication/repository/authentication.token.repository';
 import { ResetPasswordTokenRepository } from '../../authentication/repository/reset.password.token.repository';
@@ -47,25 +47,22 @@ const uuid1 = randomUUID();
 const uuid2 = randomUUID();
 
 const mockUser: UserModel = {
-  id: 1,
   uuid: uuid1,
   name: 'Test user',
   email: 'test@test.com',
-  password: 'testpass',
   role: Role.ADMIN,
   isActive: true,
   imageId: 'imageId1',
   imageUrl: 'imageUrl1',
   createdAt: now,
   updatedAt: now,
+  providers: [],
 };
 
-const mockUserEntity: UserWithRole = {
+const mockUserEntity: UserWithRoleCredentialsAndOauthProviders = {
   id: 1,
   uuid: uuid2,
   name: 'Test user',
-  email: 'test@test.com',
-  password: 'testpass',
   isActive: true,
   imageId: 'imageId2',
   imageUrl: 'imageUrl2',
@@ -77,6 +74,13 @@ const mockUserEntity: UserWithRole = {
     name: 'ADMIN',
     description: 'Admin',
   },
+  credentials: {
+    email: 'test@test.com',
+    password: 'testpass',
+    isEmailVerified: true,
+    userId: 1,
+  },
+  oauthProviders: [],
 };
 
 const transportOptions = {

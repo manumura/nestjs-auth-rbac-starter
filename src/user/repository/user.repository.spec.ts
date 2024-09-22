@@ -1,14 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaClient, Role } from '@prisma/client';
+import { randomUUID } from 'crypto';
 import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
-import { UserWithRole } from 'prisma/custom-types';
+import { UserWithRoleCredentialsAndOauthProviders } from 'prisma/custom-types';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { FilterUserDto } from '../dto/filter.user.dto';
 import { GetUsersDto } from '../dto/get.users.dto';
-import { LanguageCode } from '../model/language-code.model';
 import { Role as RoleEnum } from '../model/role.model';
 import { UserRepository } from './user.repository';
-import { randomUUID } from 'crypto';
 
 describe('UserRepository', () => {
   let prisma: DeepMockProxy<PrismaClient>;
@@ -26,12 +25,10 @@ describe('UserRepository', () => {
   const uuid1 = randomUUID();
   const uuid2 = randomUUID();
 
-  const mockUserEntity1: UserWithRole = {
+  const mockUserEntity1: UserWithRoleCredentialsAndOauthProviders = {
     id: 1,
     uuid: uuid1,
     name: 'Test user',
-    email: 'test@test.com',
-    password: 'testpass',
     role: mockRoleEntity,
     isActive: true,
     imageId: 'imageId1',
@@ -39,14 +36,19 @@ describe('UserRepository', () => {
     createdAt: now,
     updatedAt: now,
     roleId: 1,
+    credentials: {
+      email: 'test@test.com',
+      password: 'testpass',
+      isEmailVerified: true,
+      userId: 1,
+    },
+    oauthProviders: [],
   };
 
-  const mockUserEntity2: UserWithRole = {
+  const mockUserEntity2: UserWithRoleCredentialsAndOauthProviders = {
     id: 2,
     uuid: uuid2,
     name: 'Test2 user',
-    email: 'test2@test2.com',
-    password: 'testpass2',
     role: mockRoleEntity,
     isActive: true,
     imageId: 'imageId2',
@@ -54,6 +56,13 @@ describe('UserRepository', () => {
     createdAt: now,
     updatedAt: now,
     roleId: 1,
+    credentials: {
+      email: 'test2@test2.com',
+      password: 'testpass2',
+      isEmailVerified: true,
+      userId: 2,
+    },
+    oauthProviders: [],
   };
 
   beforeEach(async () => {

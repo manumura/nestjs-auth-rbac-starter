@@ -67,24 +67,24 @@ export class UserBulkService {
     }
     this.logger.debug(`Users email to ID map: ${JSON.stringify(userEmailToIdMap)}`);
 
-    const existingUserEmails = userEmailToIdMap.keys();
-    this.logger.debug(`Users already existing: ${JSON.stringify(existingUserEmails)}`);
+    const createUserDtosToUpdate: CreateBulkUserDto[] = [];
+    const createUserDtosToInsert: CreateBulkUserDto[] = [];
+    for (const createValidUserDto of createValidUserDtos) {
+      if (!createValidUserDto) {
+        continue;
+      }
+      if (userEmailToIdMap.get(createValidUserDto.email) !== undefined) {
+        createUserDtosToUpdate.push(createValidUserDto);
+      } else {
+        createUserDtosToInsert.push(createValidUserDto);
+      }
+    }
 
     // Batch UPDATE
-    const createUserDtosToUpdate: CreateBulkUserDto[] = createValidUserDtos
-      .filter((createUserDto) => !!createUserDto)
-      .filter((createUserDto) => {
-        return userEmailToIdMap.get(createUserDto.email) !== undefined;
-      });
     const usersUpdated = await this.batchUpdate(createUserDtosToUpdate, rolesMap, userEmailToIdMap);
     this.logger.verbose(`Number of users updated succesfully: ${usersUpdated.length}`);
 
     // Batch INSERT
-    const createUserDtosToInsert: CreateBulkUserDto[] = createValidUserDtos
-      .filter((createUserDto) => !!createUserDto)
-      .filter((createUserDto) => {
-        return userEmailToIdMap.get(createUserDto.email) === undefined;
-      });
     const usersCreated = await this.batchInsert(createUserDtosToInsert, rolesMap);
     this.logger.verbose(`Number of users inserted succesfully: ${usersCreated.length}`);
   }
