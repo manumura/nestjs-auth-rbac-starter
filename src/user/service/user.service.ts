@@ -93,6 +93,7 @@ export class UserService {
       throw new BadRequestException('Email or password undefined');
     }
 
+    // TODO check password strength
     const user = await this.create(email, name, RoleEnum.USER, password);
 
     // Send new user email to root user

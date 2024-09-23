@@ -121,7 +121,6 @@ export class AuthenticationController {
     return loginModel;
   }
 
-  // TODO build scripts
   // TODO password rules
   // TODO email verification
   @Post('/v1/oauth2/facebook')

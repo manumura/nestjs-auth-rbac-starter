@@ -42,3 +42,4 @@ RUN chmod +x ./startup.sh
 
 # CMD [ "node", "dist/src/main.js" ]
 CMD ["sh", "startup.sh"]
+# CMD sh startup.sh ${DATABSE_MIGRATION}
