@@ -3,7 +3,4 @@ log:
     console: debug
     file: debug
     query: query, error
-
-link:
-  reset-password: http://localhost:3001/reset-password?token=
   

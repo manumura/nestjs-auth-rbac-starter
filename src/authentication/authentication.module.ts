@@ -1,26 +1,30 @@
 import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { PrismaService } from '../../prisma/prisma.service';
+import { appConfig } from '../config/config';
 import { EmailService } from '../notification/email.service';
+import { StorageService } from '../storage/storage.service';
 import { UserMapper } from '../user/mapper/user.mapper';
+import { OauthProviderRepository } from '../user/repository/oauth-provider.repository';
 import { RoleRepository } from '../user/repository/role.repository';
 import { UserRepository } from '../user/repository/user.repository';
 import { UserService } from '../user/service/user.service';
 import { AuthenticationController } from './controller/authentication.controller';
+import { CaptchaController } from './controller/captcha.controller';
 import { IndexController } from './controller/index.controller';
 import { ResetPasswordController } from './controller/reset.password.controller';
+import { VerifyEmailController } from './controller/verify.email.controller';
 import { ResetPasswordTokenMapper } from './mapper/reset.password.token.mapper';
 import { AuthenticationTokenRepository } from './repository/authentication.token.repository';
 import { ResetPasswordTokenRepository } from './repository/reset.password.token.repository';
+import { VerifyEmailTokenRepository } from './repository/verify.email.token.repository';
 import { AuthenticationService } from './service/authentication.service';
 import { ResetPasswordService } from './service/reset.password.service';
+import { VerifyEmailService } from './service/verify.email.service';
 import { CustomStrategy } from './strategy/custom.strategy';
 import { IsResetPasswordTokenValidConstraint } from './validation/IsResetPasswordTokenValid';
-import { JwtModule } from '@nestjs/jwt';
-import { appConfig } from '../config/config';
-import { StorageService } from '../storage/storage.service';
-import { CaptchaController } from './controller/captcha.controller';
-import { OauthProviderRepository } from '../user/repository/oauth-provider.repository';
+import { IsVerifyEmailTokenValidConstraint } from './validation/IsVerifyEmailTokenValid';
 
 @Module({
   imports: [
@@ -35,23 +39,32 @@ import { OauthProviderRepository } from '../user/repository/oauth-provider.repos
     }),
     PassportModule.register({ defaultStrategy: 'custom' }),
   ],
-  controllers: [IndexController, AuthenticationController, ResetPasswordController, CaptchaController],
+  controllers: [
+    IndexController,
+    AuthenticationController,
+    ResetPasswordController,
+    VerifyEmailController,
+    CaptchaController,
+  ],
   providers: [
     PrismaService,
     AuthenticationService,
     ResetPasswordService,
+    VerifyEmailService,
     UserService,
     EmailService,
     StorageService,
     ResetPasswordTokenMapper,
     UserMapper,
     IsResetPasswordTokenValidConstraint,
+    IsVerifyEmailTokenValidConstraint,
     CustomStrategy,
     // https://docs.nestjs.com/fundamentals/custom-providers
     UserRepository,
     RoleRepository,
     OauthProviderRepository,
     ResetPasswordTokenRepository,
+    VerifyEmailTokenRepository,
     AuthenticationTokenRepository,
   ],
   exports: [CustomStrategy, PassportModule],

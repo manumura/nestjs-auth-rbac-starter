@@ -30,12 +30,14 @@ const ID_TOKEN_EXPIRES_IN_AS_SECONDS = config.get<number>('token.id.expiresInAsS
 
 const SALT_ROUNDS = config.get<number>('bcrypt.saltRounds');
 const RESET_PASSWORD_TOKEN_EXPIRY_DURATION_IN_HOURS = config.get<string>('resetPasswordToken.expiresInHours');
+const VERIFY_EMAIL_TOKEN_EXPIRY_DURATION_IN_HOURS = config.get<string>('verifyEmailToken.expiresInHours');
 
 const LOG_LEVEL_CONSOLE = config.get<string>('log.level.console');
 const LOG_LEVEL_FILE = config.get<string>('log.level.file');
 const LOG_LEVEL_QUERY = config.get<string>('log.level.query');
 
 const RESET_PASSWORD_LINK = config.get<string>('link.reset-password');
+const VERIFY_EMAIL_LINK = config.get<string>('link.verify-email');
 const MAIL_SENDER = config.get<string>('mail.sender');
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
@@ -63,10 +65,12 @@ export const appConfig = {
   ID_TOKEN_EXPIRES_IN_AS_SECONDS,
   SALT_ROUNDS,
   RESET_PASSWORD_TOKEN_EXPIRY_DURATION_IN_HOURS: RESET_PASSWORD_TOKEN_EXPIRY_DURATION_IN_HOURS,
+  VERIFY_EMAIL_TOKEN_EXPIRY_DURATION_IN_HOURS: VERIFY_EMAIL_TOKEN_EXPIRY_DURATION_IN_HOURS,
   LOG_LEVEL_CONSOLE,
   LOG_LEVEL_FILE,
   LOG_LEVEL_QUERY,
   RESET_PASSWORD_LINK,
+  VERIFY_EMAIL_LINK,
   MAIL_SENDER,
   GOOGLE_CLIENT_ID,
 };

@@ -1,4 +1,10 @@
 export const appConstants = {
+  VERIFY_EMAIL_EMAIL_SUBJECT: {
+    en: 'Verify your MyApp email!',
+    fr: 'Vérifiez votre email MyApp!',
+  },
+  VERIFY_EMAIL_EMAIL_TEMPLATE: 'verify-email',
+
   RESET_PASSWORD_EMAIL_SUBJECT: {
     en: 'Reset your MyApp password!',
     fr: 'Réinitialisez votre mot de passe MyApp!',

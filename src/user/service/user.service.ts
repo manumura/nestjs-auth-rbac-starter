@@ -80,7 +80,21 @@ export class UserService {
 
     const entity = await this.userRepository.findOneByValidResetPasswordToken(token);
     if (!entity) {
-      throw new NotFoundException(`User not deleted with valid token ${token} not found`);
+      throw new NotFoundException(`User with valid token ${token} not found`);
+    }
+    const user = this.userMapper.entityToModel(entity);
+    this.logger.debug(`User found: ${JSON.stringify(user)}`);
+    return user;
+  }
+
+  async findByValidVerifyEmailToken(token: string): Promise<UserModel> {
+    if (!token) {
+      throw new BadRequestException('Token cannot be undefined');
+    }
+
+    const entity = await this.userRepository.findByValidVerifyEmailToken(token);
+    if (!entity) {
+      throw new NotFoundException(`User with valid token ${token} not found`);
     }
     const user = this.userMapper.entityToModel(entity);
     this.logger.debug(`User found: ${JSON.stringify(user)}`);
@@ -93,8 +107,44 @@ export class UserService {
       throw new BadRequestException('Email or password undefined');
     }
 
-    // TODO check password strength
-    const user = await this.create(email, name, RoleEnum.USER, password);
+    const roleEntity = await this.roleRepository.findByName(RoleEnum.USER);
+    if (!roleEntity) {
+      throw new NotFoundException(`Role not found by name: ${RoleEnum.USER}`);
+    }
+
+    const filterByEmail: FilterUserDto = {
+      email,
+    };
+    const userEntityFound = await this.userRepository.findOne(filterByEmail);
+    this.logger.debug(`User with email already exists: ${JSON.stringify(userEntityFound)}`);
+
+    if (userEntityFound) {
+      throw new ConflictException('Cannot create user');
+    }
+
+    const verifyEmailToken = uuidv4();
+    const userEntityCreated = await this.userRepository.register({
+      email,
+      name,
+      password,
+      roleId: roleEntity.id,
+      verifyEmailToken,
+    });
+    const user = this.userMapper.entityToModel(userEntityCreated);
+    this.logger.debug(`User created: ${JSON.stringify(user)}`);
+
+    // Push new user event
+    const event = new UserChangeEvent(UserChangeEventType.CREATED, user);
+    this.pushUserChangeEvent(event);
+
+    // Send email with link to verify email
+    this.logger.verbose(`[EMAIL][REGISTER] Sending email to: ${email}`);
+    this.emailService
+      .sendRegistrationEmail(email, 'en', verifyEmailToken)
+      .then((result) => {
+        this.logger.verbose(`[EMAIL][REGISTER] Result Sending email: ${JSON.stringify(result)}`);
+      })
+      .catch((err) => this.logger.error(err));
 
     // Send new user email to root user
     const rootUserEmail = appConfig.ROOT_ACCOUNT_EMAIL;
@@ -115,30 +165,6 @@ export class UserService {
       throw new BadRequestException('Email or role undefined');
     }
 
-    const generatedPassword = uuidv4();
-    this.logger.debug(`generatedPassword: ${generatedPassword}`);
-
-    const user = await this.create(email, name, role, generatedPassword, currentUser.uuid);
-
-    // Send email with password
-    this.logger.verbose(`[EMAIL][REGISTER] Sending email to: ${email}`);
-    this.emailService
-      .sendTemporaryPasswordEmail(email, 'en', generatedPassword)
-      .then((result) => {
-        this.logger.verbose(`[EMAIL][REGISTER] Result Sending email: ${JSON.stringify(result)}`);
-      })
-      .catch((err) => this.logger.error(err));
-
-    return user;
-  }
-
-  private async create(
-    email: string,
-    name: string,
-    role: RoleEnum,
-    password: string,
-    currentUserUuid?: UUID,
-  ): Promise<UserModel> {
     const roleEntity = await this.roleRepository.findByName(role);
     if (!roleEntity) {
       throw new NotFoundException(`Role not found by name: ${role}`);
@@ -154,13 +180,30 @@ export class UserService {
       throw new ConflictException('Cannot create user');
     }
 
-    const userEntityCreated = await this.userRepository.create(email, name, password, roleEntity.id);
+    const generatedPassword = uuidv4();
+    this.logger.debug(`generatedPassword: ${generatedPassword}`);
+
+    const userEntityCreated = await this.userRepository.create({
+      email,
+      name,
+      password: generatedPassword,
+      roleId: roleEntity.id,
+    });
     const user = this.userMapper.entityToModel(userEntityCreated);
     this.logger.debug(`User created: ${JSON.stringify(user)}`);
 
     // Push new user event
-    const event = new UserChangeEvent(UserChangeEventType.CREATED, user, currentUserUuid);
+    const event = new UserChangeEvent(UserChangeEventType.CREATED, user, currentUser.uuid);
     this.pushUserChangeEvent(event);
+
+    // Send email with password
+    this.logger.verbose(`[EMAIL][REGISTER] Sending email to: ${email}`);
+    this.emailService
+      .sendTemporaryPasswordEmail(email, 'en', generatedPassword)
+      .then((result) => {
+        this.logger.verbose(`[EMAIL][REGISTER] Result Sending email: ${JSON.stringify(result)}`);
+      })
+      .catch((err) => this.logger.error(err));
 
     return user;
   }

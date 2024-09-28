@@ -5,10 +5,8 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
+
 import { FilterUserDto } from 'src/user/dto/filter.user.dto';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { appConfig } from '../../config/config';
 import { EmailService } from '../../notification/email.service';
 import { UserMapper } from '../../user/mapper/user.mapper';
 import { UserModel } from '../../user/model/user.model';
@@ -29,7 +27,6 @@ export class ResetPasswordService {
     private readonly resetPasswordTokenRepository: ResetPasswordTokenRepository,
     private readonly userMapper: UserMapper,
     private readonly resetPasswordTokenMapper: ResetPasswordTokenMapper,
-    private readonly prisma: PrismaService,
   ) {}
 
   async findByValidToken(token: string): Promise<UserModel> {
@@ -96,43 +93,13 @@ export class ResetPasswordService {
     }
     this.logger.debug(`User found: ${JSON.stringify(userEntity)}`);
 
-    const hashedPassword = await bcrypt.hash(password, appConfig.SALT_ROUNDS);
-
     try {
-      // Transaction : update user + delete reset password token
-      const user = await this.prisma.$transaction(async (tx) => {
-        this.logger.debug('Begin transaction: update user password');
-        await tx.userCredentials.update({
-          where: {
-            userId: userEntity.id,
-          },
-          data: {
-            password: hashedPassword,
-          },
-          include: {
-            user: {
-              include: {
-                role: true,
-              },
-            },
-          },
-        });
-
-        this.logger.debug('Delete reset password token by token');
-        await tx.resetPasswordToken.delete({
-          where: {
-            token,
-          },
-        });
-        this.logger.debug('End transaction');
-        const user = this.userMapper.entityToModel(userEntity);
-        return user;
-      });
-
+      await this.resetPasswordTokenRepository.updatePassword(userEntity.id, password, token);
+      const user = this.userMapper.entityToModel(userEntity);
       this.logger.debug(`Reset password success: user updated ${JSON.stringify(user)}`);
       return user;
     } catch (error) {
-      this.logger.error(`Failed to reset password with token ${JSON.stringify(resetPasswordDto)}`, error.stack);
+      this.logger.error(`Failed to reset password with token ${token}`, error.stack);
       throw new InternalServerErrorException();
     }
   }

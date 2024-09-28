@@ -12,6 +12,9 @@ bcrypt:
 resetPasswordToken:
   expiresInHours: 24
 
+verifyEmailToken:
+  expiresInHours: 168
+
 log:
   level:
     console: error
@@ -23,3 +26,4 @@ mail:
 
 link:
   reset-password: http://localhost/reset-password?token=
+  verify-email: http://localhost/verify-email?token=

@@ -18,11 +18,12 @@ export class IndexController {
   @Get('/v1/info')
   info(@Req() req: Request, @RealIP() ip: string) {
     const userAgent = req.headers['user-agent'];
-    this.logger.log(`Info API, User agent detected: ${userAgent}`);
+    this.logger.log(`Info API, User agent detected: ${userAgent}, hostname: ${req.hostname}`);
     return {
       env: appConfig.NODE_ENV,
       userAgent: userAgent,
       ip,
+      hostname: req.hostname,
     };
   }
 

@@ -3,13 +3,14 @@ import { Prisma } from '@prisma/client';
 import moment from 'moment';
 import { UserWithRoleCredentialsAndOauthProviders } from '../../../prisma/custom-types';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { appConfig } from '../../config/config';
 import { PageModel } from '../../shared/model/page.model';
 import { generateHashedPassword } from '../../shared/util/utils';
 import { FilterOauthUserDto } from '../dto/filter.oauth.user.dto';
 import { FilterUserDto } from '../dto/filter.user.dto';
+import { FilterUsersDto } from '../dto/filter.users.dto';
 import { GetUsersDto } from '../dto/get.users.dto';
 import { UpdateUserEntityDto } from '../dto/update.user.entity.dto';
-import { FilterUsersDto } from '../dto/filter.users.dto';
 
 @Injectable()
 export class UserRepository {
@@ -34,12 +35,19 @@ export class UserRepository {
     },
   };
 
-  async create(
-    email: string,
-    name: string,
-    password: string,
-    roleId: number,
-  ): Promise<UserWithRoleCredentialsAndOauthProviders> {
+  async register({
+    email,
+    name,
+    password,
+    roleId,
+    verifyEmailToken,
+  }: {
+    email: string;
+    name: string;
+    password: string;
+    roleId: number;
+    verifyEmailToken: string;
+  }): Promise<UserWithRoleCredentialsAndOauthProviders> {
     const hashedPassword = await generateHashedPassword(password);
     const userEntityToCreate: Prisma.UserCreateInput = {
       name: name ?? '',
@@ -56,6 +64,13 @@ export class UserRepository {
           password: hashedPassword,
         },
       },
+      verifyEmailToken: {
+        create: {
+          token: verifyEmailToken,
+          expiredAt: this.getExpiryDate(),
+          createdAt: moment().utc().toDate(),
+        },
+      },
     };
 
     return this.prisma.user.create({
@@ -64,13 +79,55 @@ export class UserRepository {
     });
   }
 
-  async createOauth(
-    email: string,
-    name: string,
-    roleId: number,
-    oauthProviderId: number,
-    externalUserId: string,
-  ): Promise<UserWithRoleCredentialsAndOauthProviders> {
+  async create({
+    email,
+    name,
+    password,
+    roleId,
+  }: {
+    email: string;
+    name: string;
+    password: string;
+    roleId: number;
+  }): Promise<UserWithRoleCredentialsAndOauthProviders> {
+    const hashedPassword = await generateHashedPassword(password);
+    const userEntityToCreate: Prisma.UserCreateInput = {
+      name: name ?? '',
+      isActive: true,
+      role: {
+        connect: {
+          id: roleId,
+        },
+      },
+      createdAt: moment().utc().toDate(),
+      credentials: {
+        create: {
+          email,
+          password: hashedPassword,
+          isEmailVerified: true,
+        },
+      },
+    };
+
+    return this.prisma.user.create({
+      data: userEntityToCreate,
+      include: UserRepository.include,
+    });
+  }
+
+  async createOauth({
+    email,
+    name,
+    roleId,
+    oauthProviderId,
+    externalUserId,
+  }: {
+    email: string;
+    name: string;
+    roleId: number;
+    oauthProviderId: number;
+    externalUserId: string;
+  }): Promise<UserWithRoleCredentialsAndOauthProviders> {
     const userEntityToCreate: Prisma.UserCreateInput = {
       name: name ?? '',
       isActive: true,
@@ -288,6 +345,21 @@ export class UserRepository {
     });
   }
 
+  async findByValidVerifyEmailToken(token: string): Promise<UserWithRoleCredentialsAndOauthProviders | null> {
+    const now = moment().utc().toDate();
+    return this.prisma.user.findFirst({
+      where: {
+        verifyEmailToken: {
+          token,
+          expiredAt: {
+            gte: now,
+          },
+        },
+      },
+      include: UserRepository.include,
+    });
+  }
+
   async isUserEmailAlreadyExists(email: string, id?: number): Promise<boolean> {
     if (!email) {
       this.logger.error('Email is required');
@@ -320,5 +392,13 @@ export class UserRepository {
       },
       include: UserRepository.include,
     });
+  }
+
+  private getExpiryDate(): Date {
+    const now = moment().utc();
+    const expiry = appConfig.VERIFY_EMAIL_TOKEN_EXPIRY_DURATION_IN_HOURS
+      ? appConfig.VERIFY_EMAIL_TOKEN_EXPIRY_DURATION_IN_HOURS
+      : 168;
+    return now.add(expiry, 'hours').toDate();
   }
 }

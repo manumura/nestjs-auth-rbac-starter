@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ResetPasswordToken } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 import moment from 'moment';
 import { v4 as uuidv4 } from 'uuid';
 import { PrismaService } from '../../../prisma/prisma.service';
@@ -40,6 +41,31 @@ export class ResetPasswordTokenRepository {
     });
 
     return token;
+  }
+
+  async updatePassword(userId: number, password: string, token: string): Promise<void> {
+    const hashedPassword = await bcrypt.hash(password, appConfig.SALT_ROUNDS);
+
+    // Transaction : update user + delete reset password token
+    await this.prisma.$transaction(async (tx) => {
+      this.logger.debug('Begin transaction: update user password');
+      await tx.userCredentials.update({
+        where: {
+          userId,
+        },
+        data: {
+          password: hashedPassword,
+        },
+      });
+
+      this.logger.debug('Delete reset password token by token');
+      await tx.resetPasswordToken.delete({
+        where: {
+          token,
+        },
+      });
+      this.logger.debug('End transaction');
+    });
   }
 
   private getExpiryDate(): Date {

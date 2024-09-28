@@ -145,7 +145,7 @@ export class UserBulkService {
       }
 
       const password = uuidv4();
-      createUsersPromises.push(() => this.userRepository.create(email, name, password, roleEntity.id));
+      createUsersPromises.push(() => this.userRepository.create({ email, name, password, roleId: roleEntity.id }));
     }
 
     const usersCreated = await Promise.all(createUsersPromises.map((p) => p().catch((err) => this.logger.error(err))));

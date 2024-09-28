@@ -26,10 +26,12 @@ export function validateEnv() {
     ID_TOKEN_EXPIRES_IN_AS_SECONDS: num(),
     SALT_ROUNDS: num(),
     RESET_PASSWORD_TOKEN_EXPIRY_DURATION_IN_HOURS: num(),
+    VERIFY_EMAIL_TOKEN_EXPIRY_DURATION_IN_HOURS: num(),
     LOG_LEVEL_CONSOLE: str(),
     LOG_LEVEL_FILE: str(),
     LOG_LEVEL_QUERY: str(),
     RESET_PASSWORD_LINK: str(),
+    VERIFY_EMAIL_LINK: str(),
     MAIL_SENDER: str(),
     GOOGLE_CLIENT_ID: str(),
   });

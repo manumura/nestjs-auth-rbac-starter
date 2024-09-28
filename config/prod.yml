@@ -6,3 +6,4 @@ log:
 
 link:
   reset-password: https://www.manumura.com/reset-password?token=
+  verify-email: https://www.manumura.com/verify-email?token=

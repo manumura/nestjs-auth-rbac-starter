@@ -25,7 +25,7 @@ import { LoginDto } from '../dto/login.dto';
 import { Oauth2FacebookLoginDto } from '../dto/oauth2.facebook.login.dto';
 import { Oauth2GoogleLoginDto } from '../dto/oauth2.google.login.dto';
 import { LoginModel } from '../model/login.model';
-import { TokenModel } from '../model/token.model';
+import { TokenModel } from '../model/access.token.model';
 import { AuthenticationTokenRepository } from '../repository/authentication.token.repository';
 import { UUID } from 'crypto';
 import { UserModel } from '../../user/model/user.model';
@@ -241,13 +241,13 @@ export class AuthenticationService {
     });
 
     if (!userEntity) {
-      userEntity = await this.userRepository.createOauth(
-        email ?? id + '@' + provider.toLowerCase() + '.com',
-        name ?? provider.toLowerCase() + id,
-        roleEntity.id,
-        oauthProviderEntity.id,
-        id,
-      );
+      userEntity = await this.userRepository.createOauth({
+        email: email ?? id + '@' + provider.toLowerCase() + '.com',
+        name: name ?? provider.toLowerCase() + id,
+        roleId: roleEntity.id,
+        oauthProviderId: oauthProviderEntity.id,
+        externalUserId: id,
+      });
     }
     if (!userEntity) {
       throw new UnauthorizedException('Oauth2 login failed');
