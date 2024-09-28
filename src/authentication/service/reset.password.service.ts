@@ -52,12 +52,13 @@ export class ResetPasswordService {
 
     const filterByEmail: FilterUserDto = {
       email,
+      active: true,
     };
     const userEntity = await this.userRepository.findOne(filterByEmail);
     this.logger.debug(`User found: ${JSON.stringify(userEntity)}`);
-    if (!userEntity || !userEntity.credentials) {
+    if (!userEntity || !userEntity.credentials?.isEmailVerified) {
       // Dont throw error to not reveal email is not found
-      this.logger.warn(`User with email ${email} not found`);
+      this.logger.warn(`User with email ${email} not found or email not verified`);
       return null;
     }
 

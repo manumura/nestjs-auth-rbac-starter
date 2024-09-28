@@ -121,7 +121,7 @@ export class AuthenticationController {
     return loginModel;
   }
 
-  // TODO email verification (login authentication reset-password batch-create)
+  // TODO delete my profile
   @Post('/v1/oauth2/facebook')
   @HttpCode(200)
   @ApiOkResponse({ type: LoginModel })

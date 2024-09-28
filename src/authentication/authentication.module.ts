@@ -22,7 +22,7 @@ import { VerifyEmailTokenRepository } from './repository/verify.email.token.repo
 import { AuthenticationService } from './service/authentication.service';
 import { ResetPasswordService } from './service/reset.password.service';
 import { VerifyEmailService } from './service/verify.email.service';
-import { CustomStrategy } from './strategy/custom.strategy';
+import { CustomAuthenticationStrategy } from './strategy/custom.authentication.strategy';
 import { IsResetPasswordTokenValidConstraint } from './validation/IsResetPasswordTokenValid';
 import { IsVerifyEmailTokenValidConstraint } from './validation/IsVerifyEmailTokenValid';
 
@@ -58,7 +58,7 @@ import { IsVerifyEmailTokenValidConstraint } from './validation/IsVerifyEmailTok
     UserMapper,
     IsResetPasswordTokenValidConstraint,
     IsVerifyEmailTokenValidConstraint,
-    CustomStrategy,
+    CustomAuthenticationStrategy,
     // https://docs.nestjs.com/fundamentals/custom-providers
     UserRepository,
     RoleRepository,
@@ -67,6 +67,6 @@ import { IsVerifyEmailTokenValidConstraint } from './validation/IsVerifyEmailTok
     VerifyEmailTokenRepository,
     AuthenticationTokenRepository,
   ],
-  exports: [CustomStrategy, PassportModule],
+  exports: [CustomAuthenticationStrategy, PassportModule],
 })
 export class AuthenticationModule {}

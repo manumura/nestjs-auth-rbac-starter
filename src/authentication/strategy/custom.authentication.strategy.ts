@@ -9,8 +9,8 @@ import { AuthenticationTokenRepository } from '../repository/authentication.toke
 import extractToken from './token.utils';
 
 @Injectable()
-export class CustomStrategy extends PassportStrategy(Strategy, 'custom') {
-  private logger = new Logger('CustomStrategy');
+export class CustomAuthenticationStrategy extends PassportStrategy(Strategy, 'custom') {
+  private logger = new Logger('CustomAuthenticationStrategy');
 
   constructor(
     private readonly authenticationTokenRepository: AuthenticationTokenRepository,
@@ -49,6 +49,12 @@ export class CustomStrategy extends PassportStrategy(Strategy, 'custom') {
       this.logger.error('User not found with access token');
       return this.fail({ message: 'User not found with access token' }, 401);
     }
+
+    if (!userEntity.isActive) {
+      this.logger.error('User is not active');
+      return this.fail({ message: 'User is not active' }, 401);
+    }
+
     const user = this.userMapper.entityToAuthenticatedUserModel(userEntity);
     this.logger.debug(`User found from access token: ${JSON.stringify(user)}`);
 

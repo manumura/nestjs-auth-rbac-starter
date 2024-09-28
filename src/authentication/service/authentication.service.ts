@@ -62,6 +62,9 @@ export class AuthenticationService {
     if (!valid) {
       throw new UnauthorizedException('Invalid email or password');
     }
+    if (!userEntity.credentials.isEmailVerified) {
+      throw new UnauthorizedException('Email not verified');
+    }
 
     const tokenModel = await this.generateAuthenticationTokens(userEntity);
     const user = this.userMapper.entityToAuthenticatedUserModel(userEntity);
