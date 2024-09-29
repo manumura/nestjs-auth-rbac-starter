@@ -63,7 +63,7 @@ export class AuthenticationService {
       throw new UnauthorizedException('Invalid email or password');
     }
     if (!userEntity.credentials.isEmailVerified) {
-      throw new UnauthorizedException('Email not verified');
+      throw new UnauthorizedException('Email not verified', 'email_not_verified');
     }
 
     const tokenModel = await this.generateAuthenticationTokens(userEntity);

@@ -17,6 +17,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import {
+  ApiAcceptedResponse,
   ApiBadRequestResponse,
   ApiBearerAuth,
   ApiConsumes,
@@ -148,8 +149,8 @@ export class UserController {
   @ApiBearerAuth()
   @ApiUnauthorizedResponse()
   @ApiForbiddenResponse()
-  @ApiCreatedResponse({
-    description: 'The users have been successfully created.',
+  @ApiAcceptedResponse({
+    description: 'File submitted succesfully, processing users asynchronously.',
     type: UserModel,
   })
   @ApiBadRequestResponse({ description: 'Validation failed' })
