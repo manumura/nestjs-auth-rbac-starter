@@ -119,7 +119,7 @@ export class UserService {
     this.logger.debug(`User with email already exists: ${JSON.stringify(userEntityFound)}`);
 
     if (userEntityFound) {
-      throw new ConflictException('Cannot create user');
+      throw new ConflictException('Registration failed. Please check that your email is correct.');
     }
 
     const verifyEmailToken = uuidv4();
