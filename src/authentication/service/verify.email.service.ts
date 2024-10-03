@@ -14,7 +14,7 @@ import { VerifyEmailTokenRepository } from '../repository/verify.email.token.rep
 
 @Injectable()
 export class VerifyEmailService {
-  private logger = new Logger('VerifyEmailService');
+  private readonly logger = new Logger('VerifyEmailService');
 
   constructor(
     private readonly userRepository: UserRepository,

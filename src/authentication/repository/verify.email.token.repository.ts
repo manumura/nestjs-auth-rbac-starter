@@ -3,7 +3,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 
 @Injectable()
 export class VerifyEmailTokenRepository {
-  private logger = new Logger('VerifyEmailTokenRepository');
+  private readonly logger = new Logger('VerifyEmailTokenRepository');
 
   constructor(private readonly prisma: PrismaService) {}
 

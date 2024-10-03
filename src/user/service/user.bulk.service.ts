@@ -12,7 +12,7 @@ import { UserRepository } from '../repository/user.repository';
 
 @Injectable()
 export class UserBulkService {
-  private logger = new Logger('UserBulkService');
+  private readonly logger = new Logger('UserBulkService');
 
   constructor(
     private readonly roleRepository: RoleRepository,

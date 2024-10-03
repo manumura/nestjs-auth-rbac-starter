@@ -5,7 +5,7 @@ import { appConfig } from '../../config/config';
 
 @Controller()
 export class CaptchaController {
-  private logger = new Logger('CaptchaController');
+  private readonly logger = new Logger('CaptchaController');
 
   @Post('/v1/recaptcha')
   async validateCaptcha(@Body(ValidationPipe) recaptchaDto: RecaptchaDto): Promise<boolean> {

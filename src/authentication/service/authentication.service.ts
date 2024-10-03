@@ -33,7 +33,7 @@ import { isPasswordValid } from '../../shared/util/utils';
 
 @Injectable()
 export class AuthenticationService {
-  private logger = new Logger('AuthenticationService');
+  private readonly logger = new Logger('AuthenticationService');
 
   constructor(
     private readonly userRepository: UserRepository,

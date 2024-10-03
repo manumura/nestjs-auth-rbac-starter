@@ -52,7 +52,7 @@ import { UserService } from '../service/user.service';
 
 @Controller()
 export class UserController {
-  private logger = new Logger('UserController');
+  private readonly logger = new Logger('UserController');
 
   constructor(
     private readonly userService: UserService,

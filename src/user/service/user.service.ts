@@ -36,7 +36,7 @@ import { isPasswordValid } from '../../shared/util/utils';
 
 @Injectable()
 export class UserService {
-  private logger = new Logger('UserService');
+  private readonly logger = new Logger('UserService');
   private readonly userChangeEventSubject = new BehaviorSubject<UserChangeEvent | null>(null);
 
   constructor(
@@ -209,7 +209,7 @@ export class UserService {
   }
 
   async updateProfileByUserUuid(userUuid: UUID, updateProfileDto: UpdateProfileDto): Promise<UserModel> {
-    this.logger.debug('Update profile by ID');
+    this.logger.debug('Update profile by user UUID');
     const { name } = updateProfileDto;
     if (!name) {
       throw new BadRequestException('Name must be defined');
@@ -271,7 +271,7 @@ export class UserService {
   }
 
   async updatePasswordByUserUuid(userUuid: UUID, updatePasswordDto: UpdatePasswordDto): Promise<UserModel> {
-    this.logger.debug('Update password by user ID');
+    this.logger.debug('Update password by user UUID');
     const { oldPassword, newPassword } = updatePasswordDto;
     if (!oldPassword || !newPassword) {
       throw new BadRequestException('Password must be defined');
@@ -299,7 +299,7 @@ export class UserService {
   }
 
   async updateImageByUserUuid(userUuid: UUID, file: MultipartFile): Promise<UserModel> {
-    this.logger.debug('Update user image by user ID');
+    this.logger.debug('Update user image by user UUID');
     const userEntity = await this.getByUserUuid(userUuid);
 
     const saveResponse = await this.storageService.saveImageToLocalPath(file);
@@ -363,6 +363,25 @@ export class UserService {
 
     // Push new user event
     const event = new UserChangeEvent(UserChangeEventType.DELETED, user, userUuid);
+    this.pushUserChangeEvent(event);
+
+    return user;
+  }
+
+  async inactivateUserByUuid(userUuid: UUID): Promise<UserModel> {
+    this.logger.debug('Inactivate user by UUID');
+    const userEntity = await this.getByUserUuid(userUuid);
+
+    const updateUserEntityDto: UpdateUserEntityDto = {
+      isActive: false,
+    };
+
+    const updatedUserEntity = await this.userRepository.updateById(userEntity.id, updateUserEntityDto);
+    const user = this.userMapper.entityToModel(updatedUserEntity);
+    this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
+
+    // Push new user event
+    const event = new UserChangeEvent(UserChangeEventType.UPDATED, user, userUuid);
     this.pushUserChangeEvent(event);
 
     return user;

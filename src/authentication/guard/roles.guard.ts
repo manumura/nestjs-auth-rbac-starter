@@ -5,7 +5,7 @@ import { UserModel } from '../../user/model/user.model';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  private logger = new Logger('RolesGuard');
+  private readonly logger = new Logger('RolesGuard');
 
   constructor(private readonly reflector: Reflector) {}
 
@@ -18,13 +18,13 @@ export class RolesGuard implements CanActivate {
     const user = request.user as UserModel;
     this.logger.debug(`User logged in: ${JSON.stringify(user)}`);
 
-    if (!user || !user.role) {
+    if (!user?.role) {
       this.logger.error('User or role undefined');
       throw new ForbiddenException('User or role undefined');
     }
 
     const hasRole = () => roles.some((role) => user.role === role);
-    const canActivate = user && user.role && hasRole();
+    const canActivate = user?.role && hasRole();
 
     if (!canActivate) {
       this.logger.error(`User with role ${user.role} forbidden to access this resource`);

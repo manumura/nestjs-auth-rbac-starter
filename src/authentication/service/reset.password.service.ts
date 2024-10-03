@@ -19,7 +19,7 @@ import { ResetPasswordTokenRepository } from '../repository/reset.password.token
 
 @Injectable()
 export class ResetPasswordService {
-  private logger = new Logger('ResetPasswordService');
+  private readonly logger = new Logger('ResetPasswordService');
 
   constructor(
     private readonly emailService: EmailService,

@@ -8,7 +8,7 @@ import { appConfig } from '../../config/config';
 
 @Injectable()
 export class ResetPasswordTokenRepository {
-  private logger = new Logger('ResetPasswordTokenRepository');
+  private readonly logger = new Logger('ResetPasswordTokenRepository');
 
   constructor(private readonly prisma: PrismaService) {}
 

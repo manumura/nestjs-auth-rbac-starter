@@ -10,7 +10,7 @@ import extractToken from './token.utils';
 
 @Injectable()
 export class CustomAuthenticationStrategy extends PassportStrategy(Strategy, 'custom') {
-  private logger = new Logger('CustomAuthenticationStrategy');
+  private readonly logger = new Logger('CustomAuthenticationStrategy');
 
   constructor(
     private readonly authenticationTokenRepository: AuthenticationTokenRepository,

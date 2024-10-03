@@ -6,7 +6,7 @@ import extractToken from '../strategy/token.utils';
 
 @Injectable()
 export class LogoutGuard implements CanActivate {
-  private logger = new Logger('LogoutGuard');
+  private readonly logger = new Logger('LogoutGuard');
 
   constructor(
     private readonly authenticationTokenRepository: AuthenticationTokenRepository,

@@ -35,7 +35,7 @@ import { AuthenticationService } from '../service/authentication.service';
 
 @Controller()
 export class AuthenticationController {
-  private logger = new Logger('AuthenticationController');
+  private readonly logger = new Logger('AuthenticationController');
 
   constructor(
     private readonly userService: UserService,
@@ -121,7 +121,6 @@ export class AuthenticationController {
     return loginModel;
   }
 
-  // TODO delete my profile
   @Post('/v1/oauth2/facebook')
   @HttpCode(200)
   @ApiOkResponse({ type: LoginModel })

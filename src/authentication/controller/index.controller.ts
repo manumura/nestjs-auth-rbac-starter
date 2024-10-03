@@ -5,7 +5,7 @@ import { appConfig } from '../../config/config';
 
 @Controller()
 export class IndexController {
-  private logger = new Logger('IndexController');
+  private readonly logger = new Logger('IndexController');
 
   @Get('/v1/index')
   welcome() {

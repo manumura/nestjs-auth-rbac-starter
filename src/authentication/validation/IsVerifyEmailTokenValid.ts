@@ -11,7 +11,7 @@ import { UserService } from '../../user/service/user.service';
 @ValidatorConstraint({ async: true })
 @Injectable()
 export class IsVerifyEmailTokenValidConstraint implements ValidatorConstraintInterface {
-  private logger = new Logger('IsVerifyEmailTokenValidConstraint');
+  private readonly logger = new Logger('IsVerifyEmailTokenValidConstraint');
 
   constructor(private readonly userService: UserService) {}
 

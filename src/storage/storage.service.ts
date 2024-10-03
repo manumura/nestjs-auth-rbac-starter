@@ -10,8 +10,8 @@ import { UploadResponseModel } from '../shared/model/upload.response.model';
 
 @Injectable()
 export class StorageService {
-  private logger = new Logger('StorageService');
-  private pump = util.promisify(pipeline);
+  private readonly logger = new Logger('StorageService');
+  private readonly pump = util.promisify(pipeline);
 
   async uploadProfileImage(filepath: string, userUuId: string): Promise<UploadApiResponse> {
     const nowAsString = moment().utc().format('YYYYMMDDHHmmss');

@@ -8,7 +8,7 @@ import extractToken from '../strategy/token.utils';
 
 @Injectable()
 export class RefreshTokenGuard implements CanActivate {
-  private logger = new Logger('RefreshTokenGuard');
+  private readonly logger = new Logger('RefreshTokenGuard');
 
   constructor(
     private readonly authenticationTokenRepository: AuthenticationTokenRepository,

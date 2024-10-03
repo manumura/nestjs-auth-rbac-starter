@@ -14,11 +14,11 @@ import { UpdateUserEntityDto } from '../dto/update.user.entity.dto';
 
 @Injectable()
 export class UserRepository {
-  private logger = new Logger('UserRepository');
+  private readonly logger = new Logger('UserRepository');
 
   constructor(private readonly prisma: PrismaService) {}
 
-  private static include = {
+  private static readonly include = {
     role: true,
     credentials: true,
     oauthProviders: {

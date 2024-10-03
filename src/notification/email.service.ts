@@ -7,7 +7,7 @@ import { SentMessageInfo } from 'nodemailer';
 
 @Injectable()
 export class EmailService {
-  private logger = new Logger('EmailService');
+  private readonly logger = new Logger('EmailService');
 
   constructor(private readonly mailerService: MailerService) {}
 

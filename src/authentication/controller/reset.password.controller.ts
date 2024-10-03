@@ -8,7 +8,7 @@ import { ResetPasswordService } from '../service/reset.password.service';
 
 @Controller()
 export class ResetPasswordController {
-  private logger = new Logger('ResetPasswordController');
+  private readonly logger = new Logger('ResetPasswordController');
 
   constructor(private readonly resetPasswordService: ResetPasswordService) {}
 

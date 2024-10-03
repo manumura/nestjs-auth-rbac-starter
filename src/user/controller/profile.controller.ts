@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Logger,
   Put,
@@ -31,7 +32,7 @@ import { UserService } from '../service/user.service';
 
 @Controller()
 export class ProfileController {
-  private logger = new Logger('ProfileController');
+  private readonly logger = new Logger('ProfileController');
 
   constructor(
     private readonly userService: UserService,
@@ -117,5 +118,20 @@ export class ProfileController {
     }
 
     return this.userService.updateImageByUserUuid(currentUser.uuid, file);
+  }
+
+  @Delete('/v1/profile')
+  @UseGuards(AuthGuard())
+  @ApiBearerAuth()
+  @ApiUnauthorizedResponse()
+  @ApiForbiddenResponse()
+  @ApiOkResponse({ type: UserModel })
+  @ApiBadRequestResponse({ description: 'Validation failed' })
+  deleteProfile(@GetUser() currentUser: AuthenticatedUserModel): Promise<UserModel> {
+    this.logger.log(`Delete profile for user ${currentUser.uuid}`);
+    if (!currentUser?.uuid) {
+      throw new BadRequestException('User UUID is required');
+    }
+    return this.userService.inactivateUserByUuid(currentUser.uuid);
   }
 }

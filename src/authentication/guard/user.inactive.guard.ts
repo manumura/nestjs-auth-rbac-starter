@@ -3,7 +3,7 @@ import { AuthenticatedUserModel } from '../../user/model/authenticated.user.mode
 
 @Injectable()
 export class UserInactiveGuard implements CanActivate {
-  private logger = new Logger('UserActiveGuard');
+  private readonly logger = new Logger('UserActiveGuard');
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();

@@ -11,7 +11,7 @@ import { UserRepository } from '../repository/user.repository';
 @ValidatorConstraint({ async: true })
 @Injectable()
 export class IsUserEmailAlreadyExistConstraint implements ValidatorConstraintInterface {
-  private logger = new Logger('IsUserEmailAlreadyExistConstraint');
+  private readonly logger = new Logger('IsUserEmailAlreadyExistConstraint');
 
   constructor(private readonly userRepository: UserRepository) {}
 

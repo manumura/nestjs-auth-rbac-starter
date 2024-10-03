@@ -11,7 +11,7 @@ import { UserService } from '../../user/service/user.service';
 @ValidatorConstraint({ async: true })
 @Injectable()
 export class IsResetPasswordTokenValidConstraint implements ValidatorConstraintInterface {
-  private logger = new Logger('IsResetPasswordTokenValidConstraint');
+  private readonly logger = new Logger('IsResetPasswordTokenValidConstraint');
 
   constructor(private readonly userService: UserService) {}
 

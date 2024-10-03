@@ -7,7 +7,7 @@ import { encryptToSha256 } from '../../shared/util/crypto';
 
 @Injectable()
 export class AuthenticationTokenRepository {
-  private logger = new Logger('AuthenticationTokenRepository');
+  private readonly logger = new Logger('AuthenticationTokenRepository');
 
   constructor(private readonly prisma: PrismaService) {}
 

@@ -6,7 +6,7 @@ import { VerifyEmailService } from '../service/verify.email.service';
 
 @Controller()
 export class VerifyEmailController {
-  private logger = new Logger('VerifyEmailController');
+  private readonly logger = new Logger('VerifyEmailController');
 
   constructor(private readonly verifyEmailService: VerifyEmailService) {}
 

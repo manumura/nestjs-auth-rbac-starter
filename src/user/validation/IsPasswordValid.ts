@@ -10,7 +10,7 @@ import {
 @ValidatorConstraint()
 @Injectable()
 export class IsPasswordValidConstraint implements ValidatorConstraintInterface {
-  private logger = new Logger('IsPasswordValidConstraint');
+  private readonly logger = new Logger('IsPasswordValidConstraint');
 
   validate(password: string, args: ValidationArguments): boolean {
     this.logger.debug('Password validation started');
