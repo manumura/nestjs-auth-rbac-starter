@@ -50,10 +50,11 @@ export class CustomAuthenticationStrategy extends PassportStrategy(Strategy, 'cu
       return this.fail({ message: 'User not found with access token' }, 401);
     }
 
-    if (!userEntity.isActive) {
-      this.logger.error('User is not active');
-      return this.fail({ message: 'User is not active' }, 401);
-    }
+    // Done in UserActiveGuard
+    // if (!userEntity.isActive) {
+    //   this.logger.error('User is not active');
+    //   return this.fail({ message: 'User is not active' }, 401);
+    // }
 
     const user = this.userMapper.entityToAuthenticatedUserModel(userEntity);
     this.logger.debug(`User found from access token: ${JSON.stringify(user)}`);

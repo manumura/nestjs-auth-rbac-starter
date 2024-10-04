@@ -123,7 +123,6 @@ export class AuthenticationService {
 
     const filter: FilterUserDto = {
       uuid: userUuid,
-      active: true,
     };
     const userEntity = await this.userRepository.findOne(filter);
     if (!userEntity) {

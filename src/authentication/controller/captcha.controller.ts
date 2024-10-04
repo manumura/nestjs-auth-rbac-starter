@@ -1,13 +1,17 @@
-import { Body, Controller, Logger, Post, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, HttpCode, Logger, Post, ValidationPipe } from '@nestjs/common';
 import { RecaptchaDto } from '../dto/recaptach.dto';
 import axios from 'axios';
 import { appConfig } from '../../config/config';
+import { ApiBadRequestResponse, ApiOkResponse } from '@nestjs/swagger';
 
 @Controller()
 export class CaptchaController {
   private readonly logger = new Logger('CaptchaController');
 
   @Post('/v1/recaptcha')
+  @HttpCode(200)
+  @ApiOkResponse({ type: 'boolean' })
+  @ApiBadRequestResponse({ description: 'Validation failed' })
   async validateCaptcha(@Body(ValidationPipe) recaptchaDto: RecaptchaDto): Promise<boolean> {
     const { token } = recaptchaDto;
     this.logger.log(`Validate captcha with token ${token}`);

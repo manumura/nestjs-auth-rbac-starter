@@ -54,7 +54,7 @@ export class ProfileController {
   }
 
   @Put('/v1/profile')
-  @UseGuards(AuthGuard())
+  @UseGuards(AuthGuard(), UserActiveGuard)
   @ApiBearerAuth()
   @ApiUnauthorizedResponse()
   @ApiForbiddenResponse()
@@ -72,7 +72,7 @@ export class ProfileController {
   }
 
   @Put('/v1/profile/password')
-  @UseGuards(AuthGuard())
+  @UseGuards(AuthGuard(), UserActiveGuard)
   @ApiBearerAuth()
   @ApiUnauthorizedResponse()
   @ApiForbiddenResponse()
@@ -90,7 +90,7 @@ export class ProfileController {
   }
 
   @Put('/v1/profile/image')
-  @UseGuards(AuthGuard())
+  @UseGuards(AuthGuard(), UserActiveGuard)
   @ApiConsumes('multipart/form-data')
   @ApiFile('image')
   @ApiBearerAuth()
@@ -121,7 +121,7 @@ export class ProfileController {
   }
 
   @Delete('/v1/profile')
-  @UseGuards(AuthGuard())
+  @UseGuards(AuthGuard(), UserActiveGuard)
   @ApiBearerAuth()
   @ApiUnauthorizedResponse()
   @ApiForbiddenResponse()

@@ -70,7 +70,7 @@ export class AuthenticationController {
 
   @Post('/v1/logout')
   @HttpCode(204)
-  @UseGuards(LogoutGuard, UserActiveGuard)
+  @UseGuards(LogoutGuard)
   @ApiBearerAuth()
   @ApiUnauthorizedResponse()
   @ApiForbiddenResponse()
