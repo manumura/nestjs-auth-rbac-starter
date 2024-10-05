@@ -76,7 +76,7 @@ export class UserController {
     @GetUser() currentUser: AuthenticatedUserModel,
   ): Promise<UserModel> {
     this.logger.log(`Create user with email ${userData.email}`);
-    return this.userService.createUser(userData, currentUser);
+    return this.userService.createUser(userData, currentUser.uuid);
   }
 
   @Get('/v1/users')
@@ -113,9 +113,10 @@ export class UserController {
   updateUserByUuid(
     @Param('uuid', ParseUUIDPipe) uuid: UUID,
     @Body(ValidationPipe) updateUserDto: UpdateUserDto,
+    @GetUser() currentUser: AuthenticatedUserModel,
   ): Promise<UserModel> {
     this.logger.log(`Update user with UUID ${uuid}`);
-    return this.userService.updateByUuid(uuid, updateUserDto);
+    return this.userService.updateByUuid(uuid, updateUserDto, currentUser.uuid);
   }
 
   @Delete('/v1/users/:uuid')
@@ -125,9 +126,12 @@ export class UserController {
   @ApiUnauthorizedResponse()
   @ApiForbiddenResponse()
   @ApiOkResponse({ type: UserModel })
-  deleteUserByUuid(@Param('uuid', ParseUUIDPipe) uuid: UUID): Promise<UserModel> {
+  deleteUserByUuid(
+    @Param('uuid', ParseUUIDPipe) uuid: UUID,
+    @GetUser() currentUser: AuthenticatedUserModel,
+  ): Promise<UserModel> {
     this.logger.log(`Delete user with UUID ${uuid}`);
-    return this.userService.deleteByUuid(uuid);
+    return this.userService.deleteByUuid(uuid, currentUser.uuid);
   }
 
   @Sse('/v1/events/users')

@@ -16,6 +16,7 @@ import { appConfig } from '../../config/config';
 import { EmailService } from '../../notification/email.service';
 import { PageModel } from '../../shared/model/page.model';
 import { UploadResponseModel } from '../../shared/model/upload.response.model';
+import { isPasswordValid } from '../../shared/util/utils';
 import { StorageService } from '../../storage/storage.service';
 import { CreateUserDto } from '../dto/create.user.dto';
 import { FilterUserDto } from '../dto/filter.user.dto';
@@ -26,13 +27,11 @@ import { UpdateProfileDto } from '../dto/update.profile.dto';
 import { UpdateUserDto } from '../dto/update.user.dto';
 import { UpdateUserEntityDto } from '../dto/update.user.entity.dto';
 import { UserMapper } from '../mapper/user.mapper';
-import { AuthenticatedUserModel } from '../model/authenticated.user.model';
 import { Role as RoleEnum } from '../model/role.model';
 import { UserChangeEvent, UserChangeEventType } from '../model/user.change.event';
 import { UserModel } from '../model/user.model';
 import { RoleRepository } from '../repository/role.repository';
 import { UserRepository } from '../repository/user.repository';
-import { isPasswordValid } from '../../shared/util/utils';
 
 @Injectable()
 export class UserService {
@@ -159,7 +158,7 @@ export class UserService {
     return user;
   }
 
-  async createUser(createUserDto: CreateUserDto, currentUser: AuthenticatedUserModel): Promise<UserModel> {
+  async createUser(createUserDto: CreateUserDto, currentUserUuid: UUID): Promise<UserModel> {
     const { email, name, role } = createUserDto;
     if (!email || !role) {
       throw new BadRequestException('Email or role undefined');
@@ -193,7 +192,7 @@ export class UserService {
     this.logger.debug(`User created: ${JSON.stringify(user)}`);
 
     // Push new user event
-    const event = new UserChangeEvent(UserChangeEventType.CREATED, user, currentUser.uuid);
+    const event = new UserChangeEvent(UserChangeEventType.CREATED, user, currentUserUuid);
     this.pushUserChangeEvent(event);
 
     // Send email with password
@@ -231,7 +230,7 @@ export class UserService {
     return user;
   }
 
-  async updateByUuid(userUuid: UUID, updateUserDto: UpdateUserDto): Promise<UserModel> {
+  async updateByUuid(userUuid: UUID, updateUserDto: UpdateUserDto, currentUserUuid: UUID): Promise<UserModel> {
     this.logger.debug('Update user by UUID');
     const { email, password, name, active, role } = updateUserDto;
     const userEntity = await this.getByUserUuid(userUuid);
@@ -264,7 +263,7 @@ export class UserService {
     this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
 
     // Push new user event
-    const event = new UserChangeEvent(UserChangeEventType.UPDATED, user, userUuid);
+    const event = new UserChangeEvent(UserChangeEventType.UPDATED, user, currentUserUuid);
     this.pushUserChangeEvent(event);
 
     return user;
@@ -347,13 +346,13 @@ export class UserService {
     this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
 
     // Push new user event
-    const event = new UserChangeEvent(UserChangeEventType.UPDATED, user, userEntity.uuid as UUID);
+    const event = new UserChangeEvent(UserChangeEventType.UPDATED, user);
     this.pushUserChangeEvent(event);
 
     return user;
   }
 
-  async deleteByUuid(userUuid: UUID): Promise<UserModel> {
+  async deleteByUuid(userUuid: UUID, currentUserUuid: UUID): Promise<UserModel> {
     this.logger.debug('Delete user by UUID');
     const userEntity = await this.getByUserUuid(userUuid);
 
@@ -362,7 +361,7 @@ export class UserService {
     this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
 
     // Push new user event
-    const event = new UserChangeEvent(UserChangeEventType.DELETED, user, userUuid);
+    const event = new UserChangeEvent(UserChangeEventType.DELETED, user, currentUserUuid);
     this.pushUserChangeEvent(event);
 
     return user;
@@ -381,7 +380,7 @@ export class UserService {
     this.logger.debug(`Update user success: user updated ${JSON.stringify(user)}`);
 
     // Push new user event
-    const event = new UserChangeEvent(UserChangeEventType.UPDATED, user, userUuid);
+    const event = new UserChangeEvent(UserChangeEventType.UPDATED, user);
     this.pushUserChangeEvent(event);
 
     return user;
