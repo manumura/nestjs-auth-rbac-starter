@@ -8,7 +8,7 @@ export function validateEnv() {
     COOKIE_SECRET: str(),
     RECAPTCHA_SECRET_KEY: str(),
     ID_TOKEN_PRIVATE_KEY: str(),
-    CORS_ALLOWED_ORIGNS: str(),
+    // CORS_ALLOWED_ORIGNS: str(),
     DOMAIN: str(),
     SERVER_PORT: port(),
     DATABASE_URL: str(),
