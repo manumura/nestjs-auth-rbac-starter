@@ -4,11 +4,11 @@
 # BUILD FOR LOCAL DEVELOPMENT
 ###################
 
-FROM node:22-alpine AS development
+FROM node:20-alpine AS development
 WORKDIR /usr/src/app
 COPY --chown=node:node package*.json ./
 COPY --chown=node:node prisma ./prisma/
-RUN npm ci --legacy-peer-deps
+RUN npm ci --legacy-peer-deps --verbose
 COPY --chown=node:node . .
 USER node
 
@@ -16,20 +16,19 @@ USER node
 # BUILD FOR PRODUCTION
 ###################
 
-FROM node:22-alpine AS build
+FROM node:20-alpine AS build
 WORKDIR /usr/src/app
 COPY --chown=node:node package*.json ./
 COPY --chown=node:node --from=development /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node . .
-RUN npm run build
-RUN npm ci --omit=dev --legacy-peer-deps && npm cache clean --force 
+RUN npm run build && npm ci --omit=dev --legacy-peer-deps && npm cache clean --force 
 USER node
 
 ###################
 # PRODUCTION
 ###################
 
-FROM node:22-alpine AS production
+FROM node:20-alpine AS production
 COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node --from=build /usr/src/app/dist ./dist
 COPY --chown=node:node --from=build /usr/src/app/config ./config
