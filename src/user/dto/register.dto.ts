@@ -15,7 +15,7 @@ export class RegisterDto {
   @IsString()
   @IsPasswordValid({
     message:
-      'Password must be at least 8 characters long, and contain at least 1 number, 1 uppercase letter, 1 lowercase letter, and 1 special character',
+      'Password must be minimum 8 and maximum 71 characters long, and contain at least 1 number, 1 uppercase letter, 1 lowercase letter, and 1 special character',
   })
   public password: string;
 }

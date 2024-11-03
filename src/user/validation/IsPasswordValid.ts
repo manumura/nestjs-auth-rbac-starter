@@ -15,17 +15,18 @@ export class IsPasswordValidConstraint implements ValidatorConstraintInterface {
   validate(password: string, args: ValidationArguments): boolean {
     this.logger.debug('Password validation started');
     const rules = [
-      { regex: /.{8,}/ }, // min 8 letters,
-      { regex: /\d/ }, // numbers from 0 - 9
-      { regex: /[a-z]/ }, // letters from a - z (lowercase)
-      { regex: /[A-Z]/ }, // letters from A-Z (uppercase),
-      { regex: /[^A-Za-z0-9]/ }, // special characters
+      { regex: /^.{8,71}$/, message: 'min 8 letters and max 71 letters' }, // min 8 letters, max 71 letters (bcrypt limitation)
+      { regex: /\d/, message: 'at least 1 number' }, // numbers from 0 - 9
+      { regex: /[a-z]/, message: 'at least 1 lowecase letter' }, // letters from a - z (lowercase)
+      { regex: /[A-Z]/, message: 'at least 1 uppercase letter' }, // letters from A-Z (uppercase),
+      { regex: /[^A-Za-z0-9]/, message: 'at least 1 special character' }, // special characters
     ];
 
     let isValid = true;
     for (const rule of rules) {
       isValid = rule.regex.test(password);
       if (!isValid) {
+        this.logger.debug(`Password is invalid: ${rule.message}`);
         break;
       }
     }
