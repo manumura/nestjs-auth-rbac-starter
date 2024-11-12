@@ -92,7 +92,7 @@ async function bootstrap() {
 }
 
 // Run in cluster mode
-function clusterize(callback: Function): void {
+function clusterize(callback: () => void): void {
   const logger = new Logger('clusterize');
   const numCPUs = parseInt(process.argv[2] || '1');
 
