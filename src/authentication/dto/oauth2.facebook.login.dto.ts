@@ -6,5 +6,5 @@ export class Oauth2FacebookLoginDto {
   @IsEmail()
   public email: string;
   public name?: string;
-  public picture?: string;
+  // public picture?: string;
 }
