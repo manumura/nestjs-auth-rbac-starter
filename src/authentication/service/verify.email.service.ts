@@ -23,7 +23,7 @@ export class VerifyEmailService {
   ) {}
 
   async verifyEmail(verifyEmailDto: VerifyEmailDto): Promise<UserModel> {
-    this.logger.debug('Update user is verified by verify email token');
+    this.logger.debug('Update user is verified by token');
     const { token } = verifyEmailDto;
     if (!token) {
       throw new BadRequestException('Token is undefined');

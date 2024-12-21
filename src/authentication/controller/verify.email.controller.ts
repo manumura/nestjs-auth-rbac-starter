@@ -15,7 +15,7 @@ export class VerifyEmailController {
   @ApiOkResponse({ type: UserModel })
   @ApiBadRequestResponse({ description: 'Validation failed' })
   resetPassword(@Body(ValidationPipe) verifyEmailDto: VerifyEmailDto): Promise<UserModel> {
-    this.logger.log(`Reset password for user with token ${verifyEmailDto.token}`);
+    this.logger.log(`Verify email for user with token ${verifyEmailDto.token}`);
     return this.verifyEmailService.verifyEmail(verifyEmailDto);
   }
 }

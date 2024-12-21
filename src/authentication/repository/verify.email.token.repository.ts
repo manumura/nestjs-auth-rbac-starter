@@ -10,7 +10,7 @@ export class VerifyEmailTokenRepository {
   async updateIsEmailVerified(userId: number, token: string): Promise<void> {
     // Transaction : update user + delete token
     await this.prisma.$transaction(async (tx) => {
-      this.logger.debug('Begin transaction: update user password');
+      this.logger.debug('Begin transaction: update user email verified');
       await tx.userCredentials.update({
         where: {
           userId,
