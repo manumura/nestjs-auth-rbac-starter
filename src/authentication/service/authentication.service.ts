@@ -144,7 +144,7 @@ export class AuthenticationService {
     };
     const userEntity = await this.userRepository.findOne(filter);
     if (!userEntity) {
-      throw new NotFoundException(`User not found with ID: ${userUuid}`);
+      throw new NotFoundException(`User not found with UUID: ${userUuid}`);
     }
 
     const tokenModel = await this.generateAuthenticationTokens(userEntity);
