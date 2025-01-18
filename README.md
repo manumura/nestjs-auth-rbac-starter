@@ -82,7 +82,7 @@ docker run -it --name postgres -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRE
 # run redis container
 docker run -it --name redis -p 6379:6379 -d redis:7-alpine
 
-ncu -u -x nanoid -x @fastify/cookie -x @fastify/helmet -x @fastify/multipart -x @fastify/static
+ncu -u -x nanoid
 ```
 
 ## Support
