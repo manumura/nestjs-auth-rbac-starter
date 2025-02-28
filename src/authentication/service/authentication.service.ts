@@ -56,14 +56,14 @@ export class AuthenticationService {
     };
     const userEntity = await this.userRepository.findOne(filter);
     if (!userEntity || !userEntity.credentials) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException('Invalid email or password.');
     }
     const valid = await isPasswordValid(password, userEntity.credentials.password);
     if (!valid) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException('Invalid email or password.');
     }
     if (!userEntity.credentials.isEmailVerified) {
-      throw new UnauthorizedException('Email not verified', 'email_not_verified');
+      throw new UnauthorizedException('Plase verify your email to be able to login.'); // email_not_verified
     }
 
     const tokenModel = await this.generateAuthenticationTokens(userEntity);
