@@ -121,6 +121,7 @@ export class AuthenticationController {
     return loginModel;
   }
 
+  // TODO refactor to make it secure
   @Post('/v1/oauth2/facebook')
   @HttpCode(200)
   @ApiOkResponse({ type: LoginModel })
