@@ -1,6 +1,6 @@
 import { MultipartFile } from '@fastify/multipart';
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
-import cloudinary, { UploadApiOptions, UploadApiResponse, UploadResponseCallback } from 'cloudinary';
+import cloudinary, { UploadApiOptions, UploadApiResponse, UploadResponseCallback, UploadStream } from 'cloudinary';
 import fs, { promises as fsAsync } from 'fs';
 import moment from 'moment';
 import { extname } from 'path';
@@ -28,7 +28,11 @@ export class StorageService {
   // https://cloudinary.com/documentation/upload_images#chunked_asset_upload
   // https://support.cloudinary.com/hc/en-us/articles/208263735-Guidelines-for-implementing-chunked-upload-to-Cloudinary
   // https://medium.com/@maksim_smagin/software-architecture-101-how-to-upload-file-s3-nodejs-fastify-68fceb5c5133
-  async uploadVideo(filepath: string, userUuId: string, callback: UploadResponseCallback): Promise<UploadApiResponse> {
+  uploadVideo(
+    filepath: string,
+    userUuId: string,
+    callback: UploadResponseCallback,
+  ): Promise<UploadApiResponse> | UploadStream {
     const nowAsString = moment().utc().format('YYYYMMDDHHmmss');
     const options: UploadApiOptions = {
       // filename: editCloudinaryFileName,
@@ -36,7 +40,7 @@ export class StorageService {
       public_id: 'video_' + userUuId + '_' + nowAsString,
       resource_type: 'video',
     };
-    const response = await cloudinary.v2.uploader.upload_large(filepath, options, callback);
+    const response = cloudinary.v2.uploader.upload_large(filepath, options, callback);
     return response;
   }
 
