@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaClient, Role } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
 import { UserWithRoleCredentialsAndOauthProviders } from 'prisma/custom-types';
+import { PrismaClient, Role } from 'prisma/generated/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { FilterUserDto } from '../dto/filter.user.dto';
 import { GetUsersDto } from '../dto/get.users.dto';

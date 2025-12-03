@@ -38,3 +38,6 @@ lerna-debug.log*
 !.env.template
 .history
 db-data
+
+# Prisma
+/prisma/generated/
