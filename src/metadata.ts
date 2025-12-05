@@ -1,4 +1,3 @@
-/* eslint-disable */
 export default async () => {
   const t = {
     ['./user/model/role.model']: await import('./user/model/role.model'),
