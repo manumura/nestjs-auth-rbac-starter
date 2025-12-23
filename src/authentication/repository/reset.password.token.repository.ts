@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ResetPasswordToken } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import moment from 'moment';
 import { v4 as uuidv4 } from 'uuid';
+import { ResetPasswordToken } from '../../../prisma/generated/client';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { appConfig } from '../../config/config';
+import { appConfig } from '../../config/app.config';
 
 @Injectable()
 export class ResetPasswordTokenRepository {

@@ -13,7 +13,7 @@ import moment from 'moment';
 import { nanoid } from 'nanoid';
 import { FilterUserDto } from 'src/user/dto/filter.user.dto';
 import { UserWithRole } from '../../../prisma/custom-types';
-import { appConfig } from '../../config/config';
+import { appConfig } from '../../config/app.config';
 import { UserMapper } from '../../user/mapper/user.mapper';
 import { AuthenticatedUserModel } from '../../user/model/authenticated.user.model';
 import { OauthProvider } from '../../user/model/provider.model';

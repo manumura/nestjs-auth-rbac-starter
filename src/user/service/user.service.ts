@@ -12,7 +12,7 @@ import { UUID } from 'crypto';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 import { UserWithRole, UserWithRoleCredentialsAndOauthProviders } from '../../../prisma/custom-types';
-import { appConfig } from '../../config/config';
+import { appConfig } from '../../config/app.config';
 import { EmailService } from '../../notification/email.service';
 import { PageModel } from '../../shared/model/page.model';
 import { UploadResponseModel } from '../../shared/model/upload.response.model';

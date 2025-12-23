@@ -9,7 +9,7 @@ import { useContainer } from 'class-validator';
 import { WINSTON_MODULE_NEST_PROVIDER, WinstonModule } from 'nest-winston';
 import { AppModule } from './app.module';
 import { AuthenticationModule } from './authentication/authentication.module';
-import { appConfig } from './config/config';
+import { appConfig } from './config/app.config';
 import { validateEnv } from './config/env.validation';
 import { loggerOptions } from './config/logger.config';
 import { HttpExceptionFilter } from './shared/filter/http-exception-filter';
@@ -41,7 +41,6 @@ async function bootstrap() {
     },
   };
   await app.register(multipart, options);
-  // await app.register(multipart);
 
   app.enableCors({
     origin: appConfig.CORS_ALLOWED_ORIGNS,
@@ -88,7 +87,9 @@ async function bootstrap() {
 
   // https://www.fastify.io/docs/latest/Guides/Getting-Started/#your-first-server
   await app.listen(port, '0.0.0.0');
-  logger.verbose(`Application running on port ${port}, NODE_ENV: ${appConfig.NODE_ENV}`);
+
+  const url = await app.getUrl();
+  logger.verbose(`Application running on URL ${url}, NODE_ENV: ${appConfig.NODE_ENV}`);
 }
 
 // Run in cluster mode

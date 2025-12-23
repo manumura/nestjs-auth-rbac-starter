@@ -1,7 +1,7 @@
 import { Body, Controller, HttpCode, Logger, Post, ValidationPipe } from '@nestjs/common';
 import { RecaptchaDto } from '../dto/recaptach.dto';
 import axios from 'axios';
-import { appConfig } from '../../config/config';
+import { appConfig } from '../../config/app.config';
 import { ApiBadRequestResponse, ApiOkResponse } from '@nestjs/swagger';
 
 @Controller()

@@ -1,6 +1,6 @@
 import { cleanEnv, port, str, bool, num } from 'envalid';
 
-import { appConfig } from './config';
+import { appConfig } from './app.config';
 
 export function validateEnv() {
   cleanEnv(appConfig, {

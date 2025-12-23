@@ -1,62 +1,51 @@
-import { Prisma } from '@prisma/client';
+import { Prisma } from './generated/client';
 
-const authenticationTokenWithUser = Prisma.validator<Prisma.AuthenticationTokenDefaultArgs>()({
+// Types for User with relations
+export type AuthenticationTokenWithUser = Prisma.AuthenticationTokenGetPayload<{
   include: {
     user: {
       include: {
-        role: true,
-      },
-    },
-  },
-});
+        role: true;
+      };
+    };
+  };
+}>;
 
-export type AuthenticationTokenWithUser = Prisma.AuthenticationTokenGetPayload<typeof authenticationTokenWithUser>;
-
-const userWithRole = Prisma.validator<Prisma.UserDefaultArgs>()({
+export type UserWithRole = Prisma.UserGetPayload<{
   include: {
-    role: true,
-  },
-});
+    role: true;
+  };
+}>;
 
-export type UserWithRole = Prisma.UserGetPayload<typeof userWithRole>;
-
-const userWithRoleAndCredentials = Prisma.validator<Prisma.UserDefaultArgs>()({
+export type UserWithRoleAndCredentials = Prisma.UserGetPayload<{
   include: {
-    role: true,
-    credentials: true,
-  },
-});
+    role: true;
+    credentials: true;
+  };
+}>;
 
-export type UserWithRoleAndCredentials = Prisma.UserGetPayload<typeof userWithRoleAndCredentials>;
-
-const userWithRoleAndOauthProviders = Prisma.validator<Prisma.UserDefaultArgs>()({
+export type UserWithRoleAndOauthProviders = Prisma.UserGetPayload<{
   include: {
-    role: true,
-    oauthProviders: true,
-  },
-});
+    role: true;
+    oauthProviders: true;
+  };
+}>;
 
-export type UserWithRoleAndOauthProviders = Prisma.UserGetPayload<typeof userWithRoleAndOauthProviders>;
-
-const userWithRoleCredentialsAndOauthProviders = Prisma.validator<Prisma.UserDefaultArgs>()({
+export type UserWithRoleCredentialsAndOauthProviders = Prisma.UserGetPayload<{
   include: {
-    role: true,
-    credentials: true,
+    role: true;
+    credentials: true;
     oauthProviders: {
       select: {
-        externalUserId: true,
-        email: true,
+        externalUserId: true;
+        email: true;
         oauthProvider: {
           select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-    },
-  },
-});
-
-export type UserWithRoleCredentialsAndOauthProviders = Prisma.UserGetPayload<
-  typeof userWithRoleCredentialsAndOauthProviders
->;
+            id: true;
+            name: true;
+          };
+        };
+      };
+    };
+  };
+}>;

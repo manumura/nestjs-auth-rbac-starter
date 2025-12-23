@@ -1,7 +1,7 @@
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable, Logger } from '@nestjs/common';
 import { appConstants } from '../app.constants';
-import { appConfig } from '../config/config';
+import { appConfig } from '../config/app.config';
 import { LanguageCode } from '../user/model/language-code.model';
 import { SentMessageInfo } from 'nodemailer';
 

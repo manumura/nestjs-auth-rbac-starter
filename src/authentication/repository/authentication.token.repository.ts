@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AuthenticationToken } from '@prisma/client';
 import moment from 'moment';
 import { AuthenticationTokenWithUser } from '../../../prisma/custom-types';
+import { AuthenticationToken } from '../../../prisma/generated/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { encryptToSha256 } from '../../shared/util/crypto';
 

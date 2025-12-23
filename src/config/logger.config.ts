@@ -2,7 +2,7 @@ import * as winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 import { ConsoleTransportOptions } from 'winston/lib/winston/transports';
 import { utilities as nestWinstonModuleUtilities } from 'nest-winston';
-import { appConfig } from './config';
+import { appConfig } from './app.config';
 
 const consoleTransportOptions: ConsoleTransportOptions = {
   format: winston.format.combine(winston.format.timestamp(), nestWinstonModuleUtilities.format.nestLike()),

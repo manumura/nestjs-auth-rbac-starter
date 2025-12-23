@@ -1,9 +1,10 @@
+import 'dotenv/config';
 import { defineConfig } from 'prisma/config';
-import { appConfig } from './src/config/config';
 
 export default defineConfig({
   schema: 'prisma/schema.prisma',
   datasource: {
-    url: appConfig.DATABASE_URL || '',
+    url: process.env.DATABASE_URL || '',
+    // shadowDatabaseUrl: process.env.SHADOW_DATABASE_URL || '',
   },
 });

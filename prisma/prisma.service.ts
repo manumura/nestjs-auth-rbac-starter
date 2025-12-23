@@ -3,7 +3,7 @@ import { Logger } from '@nestjs/common/services';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import { PrismaClient } from '../prisma/generated/client';
-import { appConfig } from '../src/config/config';
+import { appConfig } from '../src/config/app.config';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
@@ -26,6 +26,8 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     try {
       // await this.pool.connect();
       await this.$connect();
+      // Force a connection check with a simple query
+      await this.$queryRaw`SELECT 1`;
       this.logger.verbose('PostgreSQL connected via pg Pool');
 
       (this as PrismaClient<'query' | 'info' | 'warn' | 'error'>).$on('query', (e) => {
@@ -36,12 +38,12 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
         this.logger.error(`Target: ${e.target} | Message: ${e.message}`);
       });
     } catch (error) {
-      this.logger.error(error);
+      this.logger.error('Error connecting to the database', error);
     }
   }
 
   async onModuleDestroy(): Promise<void> {
-    await this.$disconnect();
+    // await this.$disconnect();
     await this.pool.end();
     this.logger.verbose('Prisma disconnected');
   }

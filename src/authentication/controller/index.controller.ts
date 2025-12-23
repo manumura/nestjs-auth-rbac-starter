@@ -1,7 +1,7 @@
 import { Controller, Get, Logger, Query, Req, Res } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { RealIP } from 'nestjs-real-ip';
-import { appConfig } from '../../config/config';
+import { appConfig } from '../../config/app.config';
 
 @Controller()
 export class IndexController {

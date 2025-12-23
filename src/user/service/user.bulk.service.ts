@@ -1,9 +1,9 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
-import { Role } from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
 import { validate, ValidationError } from 'class-validator';
 import { v4 as uuidv4 } from 'uuid';
 import { UserWithRoleCredentialsAndOauthProviders } from '../../../prisma/custom-types';
+import { Role } from '../../../prisma/generated/client';
 import { CreateBulkUserDto } from '../dto/create.bulk.user.dto';
 import { FilterUsersDto } from '../dto/filter.users.dto';
 import { UpdateUserEntityDto } from '../dto/update.user.entity.dto';

@@ -1,5 +1,5 @@
 import * as bcrypt from 'bcrypt';
-import { appConfig } from '../../config/config';
+import { appConfig } from '../../config/app.config';
 
 export async function generateHashedPassword(password: string): Promise<string> {
   const hashedPassword = await bcrypt.hash(password, appConfig.SALT_ROUNDS);

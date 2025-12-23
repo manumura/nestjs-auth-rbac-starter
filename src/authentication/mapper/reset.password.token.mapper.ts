@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { ResetPasswordToken } from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
+import { ResetPasswordToken } from '../../../prisma/generated/client';
 import { ResetPasswordTokenModel } from '../model/reset.password.token.model';
 
 @Injectable()

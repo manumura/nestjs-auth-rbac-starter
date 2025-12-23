@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import moment from 'moment';
 import { UserWithRoleCredentialsAndOauthProviders } from '../../../prisma/custom-types';
+import { Prisma } from '../../../prisma/generated/client';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { appConfig } from '../../config/config';
+import { appConfig } from '../../config/app.config';
 import { PageModel } from '../../shared/model/page.model';
 import { generateHashedPassword } from '../../shared/util/utils';
 import { FilterOauthUserDto } from '../dto/filter.oauth.user.dto';

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { OauthProvider } from '@prisma/client';
+import { OauthProvider } from '../../../prisma/generated/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { OauthProvider as OAuthProviderEnum } from '../model/provider.model';
 

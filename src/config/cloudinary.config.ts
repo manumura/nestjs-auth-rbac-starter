@@ -1,5 +1,5 @@
 import { ConfigOptions } from 'cloudinary';
-import { appConfig } from './config';
+import { appConfig } from './app.config';
 
 export const cloudinaryConfig: ConfigOptions = {
   cloud_name: appConfig.CLOUDINARY_NAME,
