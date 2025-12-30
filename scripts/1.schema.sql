@@ -125,6 +125,8 @@ CREATE TABLE public.oauth_user (
 );
 CREATE UNIQUE INDEX oauth_user_email_oauth_provider_id_key ON public.oauth_user USING btree (email, oauth_provider_id);
 CREATE UNIQUE INDEX oauth_user_external_user_id_oauth_provider_id_key ON public.oauth_user USING btree (external_user_id, oauth_provider_id);
+CREATE INDEX "AK_oauth_user_user_id" ON public.oauth_user USING btree (user_id);
+CREATE INDEX "AK_oauth_user_oauth_provider_id" ON public.oauth_user USING btree (oauth_provider_id);
 
 
 -- public.reset_password_token definition
