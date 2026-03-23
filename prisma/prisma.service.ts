@@ -1,25 +1,30 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { Logger } from '@nestjs/common/services';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { Pool } from 'pg';
 import { PrismaClient } from '../prisma/generated/client';
 import { appConfig } from '../src/config/app.config';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger('PrismaService');
-  private readonly pool: Pool;
+  // private readonly pool: Pool;
 
   constructor() {
-    const pool = new Pool({
+    // const pool = new Pool({
+    //   connectionString: appConfig.DATABASE_URL,
+    // });
+    const adapter = new PrismaPg({
       connectionString: appConfig.DATABASE_URL,
+      max: 10, // Optional: Set the maximum number of clients in the pool
+      connectionTimeoutMillis: 5000, // Optional: Set a connection timeout
+      idleTimeoutMillis: 10000, // Optional: Set an idle timeout
+      maxLifetimeSeconds: 300, // Optional: Set a maximum lifetime for connections
     });
-    const adapter = new PrismaPg(pool);
     super({
       adapter,
       log: ['query', 'info', 'warn', 'error'],
     });
-    this.pool = pool;
+    // this.pool = pool;
   }
 
   async onModuleInit(): Promise<void> {
@@ -43,8 +48,8 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   }
 
   async onModuleDestroy(): Promise<void> {
-    // await this.$disconnect();
-    await this.pool.end();
+    await this.$disconnect();
+    // await this.pool.end();
     this.logger.verbose('Prisma disconnected');
   }
 }

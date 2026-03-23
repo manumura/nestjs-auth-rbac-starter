@@ -122,6 +122,8 @@ export class AuthenticationController {
   }
 
   // TODO refactor to make it secure
+  // publicRouterGroup.GET("/v1/oauth2/facebook", authenticationHandler.Oauth2FacebookLogin)
+  // publicRouterGroup.GET("/v1/oauth2/facebook/callback", authenticationHandler.Oauth2FacebookLoginCallback)
   @Post('/v1/oauth2/facebook')
   @HttpCode(200)
   @ApiOkResponse({ type: LoginModel })

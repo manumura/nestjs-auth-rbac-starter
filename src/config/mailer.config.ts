@@ -1,7 +1,7 @@
 import SMTPConnection from 'nodemailer/lib/smtp-connection';
 import { appConfig } from './app.config';
 import { MailerOptions } from '@nestjs-modules/mailer';
-import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/adapters/handlebars.adapter';
 
 // https://nest-modules.github.io/mailer/docs/mailer
 export const mailerTransportOptions: SMTPConnection.Options = {

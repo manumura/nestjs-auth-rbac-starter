@@ -6,7 +6,7 @@ then
     echo "===== No DATABASE_MIGRATION argument provided ====="
 else
     echo "===== DATABASE_MIGRATION=$DATABASE_MIGRATION ====="
-    if [ $DATABASE_MIGRATION == "true" ]
+    if [ "$DATABASE_MIGRATION" == "true" ]
     then
         # Use it like this:
         # docker run -it --rm -p 9002:9002 --name nestjs-auth-rbac-starter -e DATABASE_MIGRATION="true" --env-file=.env manumura/nestjs-auth-rbac-starter
