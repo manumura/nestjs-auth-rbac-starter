@@ -1,7 +1,7 @@
-import { FastifyReply } from 'fastify';
-import { appConstants } from '../../app.constants';
-import { LoginModel } from '../../authentication/model/login.model';
-import { COOKIE_OPTIONS } from '../../config/cookie.config';
+import type { FastifyReply } from 'fastify';
+import { appConstants } from '../../app.constants.js';
+import { LoginModel } from '../../authentication/model/login.model.js';
+import { COOKIE_OPTIONS } from '../../config/cookie.config.js';
 import moment from 'moment';
 
 export const setAuthCookies = (response: FastifyReply, login: LoginModel) => {

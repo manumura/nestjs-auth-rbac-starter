@@ -1,16 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import moment from 'moment';
-import { UserWithRoleCredentialsAndOauthProviders } from '../../../prisma/custom-types';
-import { Prisma } from '../../../prisma/generated/client';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { appConfig } from '../../config/app.config';
-import { PageModel } from '../../shared/model/page.model';
-import { generateHashedPassword } from '../../shared/util/utils';
-import { FilterOauthUserDto } from '../dto/filter.oauth.user.dto';
-import { FilterUserDto } from '../dto/filter.user.dto';
-import { FilterUsersDto } from '../dto/filter.users.dto';
-import { GetUsersDto } from '../dto/get.users.dto';
-import { UpdateUserEntityDto } from '../dto/update.user.entity.dto';
+import { UserWithRoleCredentialsAndOauthProviders } from '../../prisma/custom-types.js';
+import { Prisma } from '../../prisma/generated/client.js';
+import { PrismaService } from '../../prisma/prisma.service.js';
+import { appConfig } from '../../config/app.config.js';
+import { PageModel } from '../../shared/model/page.model.js';
+import { generateHashedPassword } from '../../shared/util/utils.js';
+import { FilterOauthUserDto } from '../dto/filter.oauth.user.dto.js';
+import { FilterUserDto } from '../dto/filter.user.dto.js';
+import { FilterUsersDto } from '../dto/filter.users.dto.js';
+import { GetUsersDto } from '../dto/get.users.dto.js';
+import { UpdateUserEntityDto } from '../dto/update.user.entity.dto.js';
 
 @Injectable()
 export class UserRepository {

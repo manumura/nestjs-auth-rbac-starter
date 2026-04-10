@@ -1,5 +1,5 @@
-import { LanguageCode } from '../model/language-code.model';
-import { Role } from '../model/role.model';
+import { LanguageCode } from '../model/language-code.model.js';
+import { Role } from '../model/role.model.js';
 
 export class FilterUsersDto {
   active?: boolean;

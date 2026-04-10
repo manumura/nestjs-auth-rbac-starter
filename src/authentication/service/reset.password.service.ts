@@ -6,16 +6,16 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { FilterUserDto } from 'src/user/dto/filter.user.dto';
-import { EmailService } from '../../notification/email.service';
-import { UserMapper } from '../../user/mapper/user.mapper';
-import { UserModel } from '../../user/model/user.model';
-import { UserRepository } from '../../user/repository/user.repository';
-import { ForgotPasswordDto } from '../dto/forgot.password.dto';
-import { ResetPasswordDto } from '../dto/reset.password.dto';
-import { ResetPasswordTokenMapper } from '../mapper/reset.password.token.mapper';
-import { ResetPasswordTokenModel } from '../model/reset.password.token.model';
-import { ResetPasswordTokenRepository } from '../repository/reset.password.token.repository';
+import { FilterUserDto } from '../../user/dto/filter.user.dto.js';
+import { EmailService } from '../../notification/email.service.js';
+import { UserMapper } from '../../user/mapper/user.mapper.js';
+import { UserModel } from '../../user/model/user.model.js';
+import { UserRepository } from '../../user/repository/user.repository.js';
+import { ForgotPasswordDto } from '../dto/forgot.password.dto.js';
+import { ResetPasswordDto } from '../dto/reset.password.dto.js';
+import { ResetPasswordTokenMapper } from '../mapper/reset.password.token.mapper.js';
+import { ResetPasswordTokenModel } from '../model/reset.password.token.model.js';
+import { ResetPasswordTokenRepository } from '../repository/reset.password.token.repository.js';
 
 @Injectable()
 export class ResetPasswordService {

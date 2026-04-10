@@ -1,5 +1,5 @@
 import { MessageEvent } from '@nestjs/common';
-import { UserModel } from './user.model';
+import { UserModel } from './user.model.js';
 import { UUID } from 'crypto';
 import moment from 'moment';
 

@@ -1,10 +1,9 @@
-import SMTPConnection from 'nodemailer/lib/smtp-connection';
-import { appConfig } from './app.config';
+import { appConfig } from './app.config.js';
 import { MailerOptions } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/adapters/handlebars.adapter';
 
 // https://nest-modules.github.io/mailer/docs/mailer
-export const mailerTransportOptions: SMTPConnection.Options = {
+export const mailerTransportOptions = {
   host: appConfig.SMTP_HOST,
   port: Number(appConfig.SMTP_PORT),
   secure: appConfig.SMTP_SECURE, // true for 465, false for other ports

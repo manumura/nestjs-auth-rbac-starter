@@ -1,7 +1,7 @@
 import { Controller, Get, Logger, Query, Req, Res } from '@nestjs/common';
-import { Request, Response } from 'express';
+import type { FastifyReply, FastifyRequest } from 'fastify';
 import { RealIP } from 'nestjs-real-ip';
-import { appConfig } from '../../config/app.config';
+import { appConfig } from '../../config/app.config.js';
 
 @Controller()
 export class IndexController {
@@ -16,7 +16,7 @@ export class IndexController {
   }
 
   @Get('/v1/info')
-  info(@Req() req: Request, @RealIP() ip: string) {
+  info(@Req() req: FastifyRequest, @RealIP() ip: string) {
     const userAgent = req.headers['user-agent'];
     this.logger.log(`Info API, User agent detected: ${userAgent}, hostname: ${req.hostname}`);
     return {
@@ -28,8 +28,8 @@ export class IndexController {
   }
 
   @Get('/v1/redirect')
-  redirect(@Query('url') url: string, @Res() res: Response): void {
+  redirect(@Query('url') url: string, @Res() res: FastifyReply): void {
     this.logger.log(`Redirect to URL: ${url}`);
-    return res.status(302).redirect(url);
+    res.status(302).redirect(url);
   }
 }

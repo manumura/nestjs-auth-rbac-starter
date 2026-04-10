@@ -4,7 +4,7 @@
   "description": "NestJS starter with RBAC authentication",
   "author": "Emmanuel Mura",
   "license": "MIT",
-  "type": "commonjs",
+  "type": "module",
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
@@ -15,11 +15,11 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "bun dist/src/main.js",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:cov": "jest --coverage",
-    "test:debug": "bun --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:watch": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --watch",
+    "test:cov": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage",
+    "test:debug": "cross-env NODE_OPTIONS=--experimental-vm-modules bun --inspect-brk node_modules/.bin/jest --runInBand",
+    "test:e2e": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",
@@ -48,6 +48,7 @@
     "fastify-swagger": "^5.2.0",
     "google-auth-library": "^10.6.2",
     "handlebars": "^4.7.8",
+    "ky": "^2.0.0",
     "moment": "^2.30.1",
     "nanoid": "^3.3.11",
     "nest-winston": "^1.10.2",
@@ -82,6 +83,8 @@
     "@types/passport-strategy": "^0.2.38",
     "@types/pg": "^8.20.0",
     "@types/supertest": "^7.2.0",
+    "chokidar": "^5.0.0",
+    "cross-env": "^10.1.0",
     "eslint": "^10.1.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
@@ -99,6 +102,9 @@
     "typescript-eslint": "^8.57.1"
   },
   "jest": {
+    "extensionsToTreatAsEsm": [
+      ".ts"
+    ],
     "moduleFileExtensions": [
       "js",
       "json",
@@ -107,11 +113,19 @@
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
+      "^.+\\.(t|j)s$": [
+        "ts-jest",
+        {
+          "useESM": true
+        }
+      ]
     },
     "transformIgnorePatterns": [
-      "node_modules/(?!(uuid)/)"
+      "node_modules/(?!(uuid|ky)/)"
     ],
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    },
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],

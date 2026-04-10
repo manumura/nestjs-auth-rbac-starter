@@ -17,21 +17,21 @@ import {
   ApiOkResponse,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { FastifyReply } from 'fastify';
-import { GetUser } from '../../shared/decorator/get-user.decorator';
-import { clearAuthCookies, setAuthCookies } from '../../shared/util/cookies';
-import { RegisterDto } from '../../user/dto/register.dto';
-import { AuthenticatedUserModel } from '../../user/model/authenticated.user.model';
-import { UserModel } from '../../user/model/user.model';
-import { UserService } from '../../user/service/user.service';
-import { LoginDto } from '../dto/login.dto';
-import { Oauth2FacebookLoginDto } from '../dto/oauth2.facebook.login.dto';
-import { Oauth2GoogleLoginDto } from '../dto/oauth2.google.login.dto';
-import { LogoutGuard } from '../guard/logout.guard';
-import { RefreshTokenGuard } from '../guard/refresh.token.guard';
-import { UserActiveGuard } from '../guard/user.active.guard';
-import { LoginModel } from '../model/login.model';
-import { AuthenticationService } from '../service/authentication.service';
+import type { FastifyReply } from 'fastify';
+import { GetUser } from '../../shared/decorator/get-user.decorator.js';
+import { clearAuthCookies, setAuthCookies } from '../../shared/util/cookies.js';
+import { RegisterDto } from '../../user/dto/register.dto.js';
+import { AuthenticatedUserModel } from '../../user/model/authenticated.user.model.js';
+import { UserModel } from '../../user/model/user.model.js';
+import { UserService } from '../../user/service/user.service.js';
+import { LoginDto } from '../dto/login.dto.js';
+import { Oauth2FacebookLoginDto } from '../dto/oauth2.facebook.login.dto.js';
+import { Oauth2GoogleLoginDto } from '../dto/oauth2.google.login.dto.js';
+import { LogoutGuard } from '../guard/logout.guard.js';
+import { RefreshTokenGuard } from '../guard/refresh.token.guard.js';
+import { UserActiveGuard } from '../guard/user.active.guard.js';
+import { LoginModel } from '../model/login.model.js';
+import { AuthenticationService } from '../service/authentication.service.js';
 
 @Controller()
 export class AuthenticationController {

@@ -19,16 +19,16 @@ import {
   ApiOkResponse,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { FastifyRequest } from 'fastify';
-import { UserActiveGuard } from '../../authentication/guard/user.active.guard';
-import { ApiFile } from '../../shared/decorator/ApiFile.decorator';
-import { GetUser } from '../../shared/decorator/get-user.decorator';
-import { UpdatePasswordDto } from '../dto/update.password.dto';
-import { UpdateProfileDto } from '../dto/update.profile.dto';
-import { UserMapper } from '../mapper/user.mapper';
-import { AuthenticatedUserModel } from '../model/authenticated.user.model';
-import { UserModel } from '../model/user.model';
-import { UserService } from '../service/user.service';
+import type { FastifyRequest } from 'fastify';
+import { UserActiveGuard } from '../../authentication/guard/user.active.guard.js';
+import { ApiFile } from '../../shared/decorator/ApiFile.decorator.js';
+import { GetUser } from '../../shared/decorator/get-user.decorator.js';
+import { UpdatePasswordDto } from '../dto/update.password.dto.js';
+import { UpdateProfileDto } from '../dto/update.profile.dto.js';
+import { UserMapper } from '../mapper/user.mapper.js';
+import { AuthenticatedUserModel } from '../model/authenticated.user.model.js';
+import { UserModel } from '../model/user.model.js';
+import { UserService } from '../service/user.service.js';
 
 @Controller()
 export class ProfileController {

@@ -1,10 +1,10 @@
 import { Body, Controller, Get, HttpCode, Logger, Param, Post, ValidationPipe } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
-import { MessageModel } from '../../shared/model/message.model';
-import { UserModel } from '../../user/model/user.model';
-import { ForgotPasswordDto } from '../dto/forgot.password.dto';
-import { ResetPasswordDto } from '../dto/reset.password.dto';
-import { ResetPasswordService } from '../service/reset.password.service';
+import { MessageModel } from '../../shared/model/message.model.js';
+import { UserModel } from '../../user/model/user.model.js';
+import { ForgotPasswordDto } from '../dto/forgot.password.dto.js';
+import { ResetPasswordDto } from '../dto/reset.password.dto.js';
+import { ResetPasswordService } from '../service/reset.password.service.js';
 
 @Controller()
 export class ResetPasswordController {

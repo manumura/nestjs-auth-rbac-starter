@@ -6,11 +6,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { UserMapper } from '../../user/mapper/user.mapper';
-import { UserModel } from '../../user/model/user.model';
-import { UserRepository } from '../../user/repository/user.repository';
-import { VerifyEmailDto } from '../dto/verify.email.dto';
-import { VerifyEmailTokenRepository } from '../repository/verify.email.token.repository';
+import { UserMapper } from '../../user/mapper/user.mapper.js';
+import { UserModel } from '../../user/model/user.model.js';
+import { UserRepository } from '../../user/repository/user.repository.js';
+import { VerifyEmailDto } from '../dto/verify.email.dto.js';
+import { VerifyEmailTokenRepository } from '../repository/verify.email.token.repository.js';
 
 @Injectable()
 export class VerifyEmailService {

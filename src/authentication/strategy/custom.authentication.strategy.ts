@@ -1,13 +1,13 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Request } from 'express';
+import type { FastifyRequest } from 'fastify';
 import moment from 'moment';
 import { Strategy } from 'passport-custom';
-import { appConstants } from '../../app.constants';
-import { UserMapper } from '../../user/mapper/user.mapper';
-import { AuthenticatedUserModel } from '../../user/model/authenticated.user.model';
-import { AuthenticationTokenRepository } from '../repository/authentication.token.repository';
-import extractToken from './token.utils';
+import { appConstants } from '../../app.constants.js';
+import { UserMapper } from '../../user/mapper/user.mapper.js';
+import { AuthenticatedUserModel } from '../../user/model/authenticated.user.model.js';
+import { AuthenticationTokenRepository } from '../repository/authentication.token.repository.js';
+import extractToken from './token.utils.js';
 
 @Injectable()
 export class CustomAuthenticationStrategy extends PassportStrategy(Strategy, 'custom') {
@@ -20,7 +20,7 @@ export class CustomAuthenticationStrategy extends PassportStrategy(Strategy, 'cu
     super();
   }
 
-  async validate(request: Request): Promise<AuthenticatedUserModel> {
+  async validate(request: FastifyRequest): Promise<AuthenticatedUserModel> {
     this.logger.debug(`Checking authentication for request: ${request.url}`);
     const headers = request.headers;
     const cookies = request.cookies;

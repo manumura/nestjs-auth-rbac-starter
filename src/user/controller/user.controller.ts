@@ -26,29 +26,29 @@ import {
   ApiOkResponse,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { UUID } from 'crypto';
+import type { UUID } from 'node:crypto';
 import csvParser from 'csv-parser';
-import { FastifyRequest } from 'fastify';
+import type { FastifyRequest } from 'fastify';
 import { Observable } from 'rxjs';
-import { RolesGuard } from '../../authentication/guard/roles.guard';
-import { UserActiveGuard } from '../../authentication/guard/user.active.guard';
-import { ApiFile } from '../../shared/decorator/ApiFile.decorator';
-import { GetUser } from '../../shared/decorator/get-user.decorator';
-import { Roles } from '../../shared/decorator/roles.decorator';
-import { MessageModel } from '../../shared/model/message.model';
-import { PageModel } from '../../shared/model/page.model';
-import { StorageService } from '../../storage/storage.service';
-import { CreateBulkUserDto } from '../dto/create.bulk.user.dto';
-import { CreateUserDto } from '../dto/create.user.dto';
-import { GetUsersDto } from '../dto/get.users.dto';
-import { UpdateUserDto } from '../dto/update.user.dto';
-import { AuthenticatedUserModel } from '../model/authenticated.user.model';
-import { Role } from '../model/role.model';
-import { UserChangeEvent } from '../model/user.change.event';
-import { UserModel } from '../model/user.model';
-import { UserPageModel } from '../model/user.page.model';
-import { UserBulkService } from '../service/user.bulk.service';
-import { UserService } from '../service/user.service';
+import { RolesGuard } from '../../authentication/guard/roles.guard.js';
+import { UserActiveGuard } from '../../authentication/guard/user.active.guard.js';
+import { ApiFile } from '../../shared/decorator/ApiFile.decorator.js';
+import { GetUser } from '../../shared/decorator/get-user.decorator.js';
+import { Roles } from '../../shared/decorator/roles.decorator.js';
+import { MessageModel } from '../../shared/model/message.model.js';
+import { PageModel } from '../../shared/model/page.model.js';
+import { StorageService } from '../../storage/storage.service.js';
+import { CreateBulkUserDto } from '../dto/create.bulk.user.dto.js';
+import { CreateUserDto } from '../dto/create.user.dto.js';
+import { GetUsersDto } from '../dto/get.users.dto.js';
+import { UpdateUserDto } from '../dto/update.user.dto.js';
+import { AuthenticatedUserModel } from '../model/authenticated.user.model.js';
+import { Role } from '../model/role.model.js';
+import { UserChangeEvent } from '../model/user.change.event.js';
+import { UserModel } from '../model/user.model.js';
+import { UserPageModel } from '../model/user.page.model.js';
+import { UserBulkService } from '../service/user.bulk.service.js';
+import { UserService } from '../service/user.service.js';
 
 @Controller()
 export class UserController {

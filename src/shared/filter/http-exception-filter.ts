@@ -1,6 +1,6 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, Logger } from '@nestjs/common';
-import { RefreshTokenException } from '../exception/refresh-token.exception';
-import { clearAuthCookies } from '../util/cookies';
+import { RefreshTokenException } from '../exception/refresh-token.exception.js';
+import { clearAuthCookies } from '../util/cookies.js';
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {

@@ -7,15 +7,15 @@ import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { useContainer } from 'class-validator';
 import { WINSTON_MODULE_NEST_PROVIDER, WinstonModule } from 'nest-winston';
-import { AppModule } from './app.module';
-import { AuthenticationModule } from './authentication/authentication.module';
-import { appConfig } from './config/app.config';
-import { validateEnv } from './config/env.validation';
-import { loggerOptions } from './config/logger.config';
-import { HttpExceptionFilter } from './shared/filter/http-exception-filter';
-import { UserModule } from './user/user.module';
-import cluster from 'cluster';
-import * as process from 'node:process';
+import { AppModule } from './app.module.js';
+import { AuthenticationModule } from './authentication/authentication.module.js';
+import { appConfig } from './config/app.config.js';
+import { validateEnv } from './config/env.validation.js';
+import { loggerOptions } from './config/logger.config.js';
+import { HttpExceptionFilter } from './shared/filter/http-exception-filter.js';
+import { UserModule } from './user/user.module.js';
+import cluster from 'node:cluster';
+import process from 'node:process';
 
 // TODO session in redis https://blog.logrocket.com/add-redis-cache-nestjs-app/
 async function bootstrap() {

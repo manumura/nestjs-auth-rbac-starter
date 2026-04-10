@@ -1,8 +1,8 @@
 import { Exclude, Expose, Type } from 'class-transformer';
 
 import { ApiProperty } from '@nestjs/swagger';
-import { OauthProviderModel } from './oauth.provider.model';
-import { Role } from './role.model';
+import { OauthProviderModel } from './oauth.provider.model.js';
+import { Role } from './role.model.js';
 
 @Exclude()
 export class UserModel {

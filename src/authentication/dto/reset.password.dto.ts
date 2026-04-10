@@ -1,5 +1,5 @@
 import { IsString, MaxLength, MinLength } from 'class-validator';
-import { IsResetPasswordTokenValid } from '../validation/IsResetPasswordTokenValid';
+import { IsResetPasswordTokenValid } from '../validation/IsResetPasswordTokenValid.js';
 
 export class ResetPasswordDto {
   @IsString()

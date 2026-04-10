@@ -1,5 +1,5 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable, Logger } from '@nestjs/common';
-import { AuthenticatedUserModel } from '../../user/model/authenticated.user.model';
+import { AuthenticatedUserModel } from '../../user/model/authenticated.user.model.js';
 
 @Injectable()
 export class UserInactiveGuard implements CanActivate {

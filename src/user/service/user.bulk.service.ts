@@ -2,13 +2,13 @@ import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { validate, ValidationError } from 'class-validator';
 import { v4 as uuidv4 } from 'uuid';
-import { UserWithRoleCredentialsAndOauthProviders } from '../../../prisma/custom-types';
-import { Role } from '../../../prisma/generated/client';
-import { CreateBulkUserDto } from '../dto/create.bulk.user.dto';
-import { FilterUsersDto } from '../dto/filter.users.dto';
-import { UpdateUserEntityDto } from '../dto/update.user.entity.dto';
-import { RoleRepository } from '../repository/role.repository';
-import { UserRepository } from '../repository/user.repository';
+import { UserWithRoleCredentialsAndOauthProviders } from '../../prisma/custom-types.js';
+import { Role } from '../../prisma/generated/client.js';
+import { CreateBulkUserDto } from '../dto/create.bulk.user.dto.js';
+import { FilterUsersDto } from '../dto/filter.users.dto.js';
+import { UpdateUserEntityDto } from '../dto/update.user.entity.dto.js';
+import { RoleRepository } from '../repository/role.repository.js';
+import { UserRepository } from '../repository/user.repository.js';
 
 @Injectable()
 export class UserBulkService {

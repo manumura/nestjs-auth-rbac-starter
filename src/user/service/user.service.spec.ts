@@ -1,21 +1,22 @@
+import { jest } from '@jest/globals';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { randomUUID } from 'crypto';
-import { UserWithRole, UserWithRoleCredentialsAndOauthProviders } from '../../../prisma/custom-types';
-import { ResetPasswordTokenMapper } from '../../authentication/mapper/reset.password.token.mapper';
-import { AuthenticationTokenRepository } from '../../authentication/repository/authentication.token.repository';
-import { ResetPasswordTokenRepository } from '../../authentication/repository/reset.password.token.repository';
-import { EmailService } from '../../notification/email.service';
-import { PageModel } from '../../shared/model/page.model';
-import { StorageService } from '../../storage/storage.service';
-import { GetUsersDto } from '../dto/get.users.dto';
-import { UserMapper } from '../mapper/user.mapper';
-import { Role } from '../model/role.model';
-import { UserModel } from '../model/user.model';
-import { RoleRepository } from '../repository/role.repository';
-import { UserRepository } from '../repository/user.repository';
-import { UserService } from './user.service';
+import { UserWithRole, UserWithRoleCredentialsAndOauthProviders } from '../../prisma/custom-types.js';
+import { ResetPasswordTokenMapper } from '../../authentication/mapper/reset.password.token.mapper.js';
+import { AuthenticationTokenRepository } from '../../authentication/repository/authentication.token.repository.js';
+import { ResetPasswordTokenRepository } from '../../authentication/repository/reset.password.token.repository.js';
+import { EmailService } from '../../notification/email.service.js';
+import { PageModel } from '../../shared/model/page.model.js';
+import { StorageService } from '../../storage/storage.service.js';
+import { GetUsersDto } from '../dto/get.users.dto.js';
+import { UserMapper } from '../mapper/user.mapper.js';
+import { Role } from '../model/role.model.js';
+import { UserModel } from '../model/user.model.js';
+import { RoleRepository } from '../repository/role.repository.js';
+import { UserRepository } from '../repository/user.repository.js';
+import { UserService } from './user.service.js';
 
 const mockUserRepository = () => ({
   create: jest.fn(),

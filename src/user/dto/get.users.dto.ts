@@ -1,6 +1,6 @@
 import { IsEnum, IsNumberString, IsOptional, IsBooleanString } from 'class-validator';
 
-import { Role } from '../model/role.model';
+import { Role } from '../model/role.model.js';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class GetUsersDto {

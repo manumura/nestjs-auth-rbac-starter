@@ -1,6 +1,6 @@
 import { IsEmail, IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
-import { Role } from '../model/role.model';
-import { IsUserEmailAlreadyExist } from '../validation/IsUserEmailAlreadyExist';
+import { Role } from '../model/role.model.js';
+import { IsUserEmailAlreadyExist } from '../validation/IsUserEmailAlreadyExist.js';
 
 export class CreateUserDto {
   @IsEmail()

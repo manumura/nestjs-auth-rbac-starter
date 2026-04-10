@@ -1,8 +1,8 @@
 import { Exclude, Expose } from 'class-transformer';
 
 import { ApiProperty } from '@nestjs/swagger';
-import { Role } from './role.model';
-import { UUID } from 'crypto';
+import { Role } from './role.model.js';
+import type { UUID } from 'node:crypto';
 
 @Exclude()
 export class AuthenticatedUserModel {

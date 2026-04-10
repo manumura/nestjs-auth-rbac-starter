@@ -6,7 +6,7 @@ import {
   ValidatorConstraint,
   ValidatorConstraintInterface,
 } from 'class-validator';
-import { UserService } from '../../user/service/user.service';
+import { UserService } from '../../user/service/user.service.js';
 
 @ValidatorConstraint({ async: true })
 @Injectable()

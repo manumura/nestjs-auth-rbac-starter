@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { OauthProvider } from '../../../prisma/generated/client';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { OauthProvider as OAuthProviderEnum } from '../model/provider.model';
+import { OauthProvider } from '../../prisma/generated/client.js';
+import { PrismaService } from '../../prisma/prisma.service.js';
+import { OauthProvider as OAuthProviderEnum } from '../model/provider.model.js';
 
 @Injectable()
 export class OauthProviderRepository {

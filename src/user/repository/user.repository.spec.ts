@@ -1,13 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { randomUUID } from 'crypto';
 import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
-import { UserWithRoleCredentialsAndOauthProviders } from 'prisma/custom-types';
-import { PrismaClient, Role } from '../../../prisma/generated/client';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { FilterUserDto } from '../dto/filter.user.dto';
-import { GetUsersDto } from '../dto/get.users.dto';
-import { Role as RoleEnum } from '../model/role.model';
-import { UserRepository } from './user.repository';
+import { UserWithRoleCredentialsAndOauthProviders } from '../../prisma/custom-types.js';
+import { PrismaClient, Role } from '../../prisma/generated/client.js';
+import { PrismaService } from '../../prisma/prisma.service.js';
+import { FilterUserDto } from '../dto/filter.user.dto.js';
+import { GetUsersDto } from '../dto/get.users.dto.js';
+import { Role as RoleEnum } from '../model/role.model.js';
+import { UserRepository } from './user.repository.js';
 
 describe('UserRepository', () => {
   let prisma: DeepMockProxy<PrismaClient>;

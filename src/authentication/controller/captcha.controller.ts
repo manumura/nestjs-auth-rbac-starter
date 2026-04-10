@@ -1,8 +1,8 @@
 import { Body, Controller, HttpCode, Logger, Post, ValidationPipe } from '@nestjs/common';
-import { RecaptchaDto } from '../dto/recaptach.dto';
-import axios from 'axios';
-import { appConfig } from '../../config/app.config';
+import { RecaptchaDto } from '../dto/recaptach.dto.js';
+import { appConfig } from '../../config/app.config.js';
 import { ApiBadRequestResponse, ApiOkResponse } from '@nestjs/swagger';
+import ky from 'ky';
 
 @Controller()
 export class CaptchaController {
@@ -20,10 +20,12 @@ export class CaptchaController {
       return false;
     }
 
-    const res = await axios.post(
-      `https://www.google.com/recaptcha/api/siteverify?secret=${appConfig.RECAPTCHA_SECRET_KEY}&response=${token}`,
-    );
-    const score = res.data.score;
+    const res = await ky
+      .post('https://www.google.com/recaptcha/api/siteverify', {
+        searchParams: { secret: appConfig.RECAPTCHA_SECRET_KEY, response: token },
+      })
+      .json<{ score: number }>();
+    const score = res.score;
     this.logger.log(`Captcha score: ${score}`);
     return score > 0.5;
   }

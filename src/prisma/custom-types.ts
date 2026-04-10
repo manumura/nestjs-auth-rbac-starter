@@ -1,4 +1,4 @@
-import { Prisma } from './generated/client';
+import { Prisma } from './generated/client.js';
 
 // Types for User with relations
 export type AuthenticationTokenWithUser = Prisma.AuthenticationTokenGetPayload<{

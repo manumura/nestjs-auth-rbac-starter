@@ -1,5 +1,5 @@
 import { IsBoolean, IsEmail, IsEnum, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
-import { Role } from '../model/role.model';
+import { Role } from '../model/role.model.js';
 
 export class UpdateUserDto {
   @IsOptional()

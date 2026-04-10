@@ -6,7 +6,7 @@ import moment from 'moment';
 import { extname } from 'path';
 import { Transform, pipeline } from 'stream';
 import util from 'util';
-import { UploadResponseModel } from '../shared/model/upload.response.model';
+import { UploadResponseModel } from '../shared/model/upload.response.model.js';
 
 @Injectable()
 export class StorageService {

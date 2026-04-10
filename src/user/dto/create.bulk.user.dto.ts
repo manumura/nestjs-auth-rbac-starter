@@ -1,5 +1,5 @@
 import { IsEmail, IsEnum, IsOptional, IsString, MaxLength } from 'class-validator';
-import { Role } from '../model/role.model';
+import { Role } from '../model/role.model.js';
 
 export class CreateBulkUserDto {
   @IsEmail()

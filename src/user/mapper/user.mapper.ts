@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
-import { UserWithRole, UserWithRoleCredentialsAndOauthProviders } from '../../../prisma/custom-types';
-import { AuthenticatedUserModel } from '../model/authenticated.user.model';
-import { Role } from '../model/role.model';
-import { UserModel } from '../model/user.model';
-import { OauthProvider } from '../model/provider.model';
+import { UserWithRole, UserWithRoleCredentialsAndOauthProviders } from '../../prisma/custom-types.js';
+import { AuthenticatedUserModel } from '../model/authenticated.user.model.js';
+import { Role } from '../model/role.model.js';
+import { UserModel } from '../model/user.model.js';
+import { OauthProvider } from '../model/provider.model.js';
 
 @Injectable()
 export class UserMapper {

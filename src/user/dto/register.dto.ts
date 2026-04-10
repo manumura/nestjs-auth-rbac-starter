@@ -1,5 +1,5 @@
 import { IsEmail, IsString, MaxLength } from 'class-validator';
-import { IsPasswordValid } from '../validation/IsPasswordValid';
+import { IsPasswordValid } from '../validation/IsPasswordValid.js';
 
 export class RegisterDto {
   @IsEmail()

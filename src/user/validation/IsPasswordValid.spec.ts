@@ -1,5 +1,5 @@
 import { ValidationArguments } from 'class-validator';
-import { IsPasswordValidConstraint } from './IsPasswordValid';
+import { IsPasswordValidConstraint } from './IsPasswordValid.js';
 
 // npm run test IsPasswordValid --coverage
 describe('IsPasswordValid', () => {

@@ -1,8 +1,8 @@
 import { CanActivate, ExecutionContext, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
-import { appConstants } from '../../app.constants';
-import { UserMapper } from '../../user/mapper/user.mapper';
-import { AuthenticationTokenRepository } from '../repository/authentication.token.repository';
-import extractToken from '../strategy/token.utils';
+import { appConstants } from '../../app.constants.js';
+import { UserMapper } from '../../user/mapper/user.mapper.js';
+import { AuthenticationTokenRepository } from '../repository/authentication.token.repository.js';
+import extractToken from '../strategy/token.utils.js';
 
 @Injectable()
 export class LogoutGuard implements CanActivate {

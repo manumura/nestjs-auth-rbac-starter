@@ -1,8 +1,8 @@
 import { Body, Controller, HttpCode, Logger, Post, ValidationPipe } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiOkResponse } from '@nestjs/swagger';
-import { UserModel } from '../../user/model/user.model';
-import { VerifyEmailDto } from '../dto/verify.email.dto';
-import { VerifyEmailService } from '../service/verify.email.service';
+import { UserModel } from '../../user/model/user.model.js';
+import { VerifyEmailDto } from '../dto/verify.email.dto.js';
+import { VerifyEmailService } from '../service/verify.email.service.js';
 
 @Controller()
 export class VerifyEmailController {

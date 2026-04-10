@@ -1,5 +1,5 @@
 import { IsString } from 'class-validator';
-import { IsVerifyEmailTokenValid } from '../validation/IsVerifyEmailTokenValid';
+import { IsVerifyEmailTokenValid } from '../validation/IsVerifyEmailTokenValid.js';
 
 export class VerifyEmailDto {
   @IsVerifyEmailTokenValid({
