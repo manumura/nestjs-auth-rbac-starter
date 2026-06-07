@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
 import moment from 'moment';
 import { v4 as uuidv4 } from 'uuid';
+import { appConfig } from '../../config/app.config.js';
 import { ResetPasswordToken } from '../../prisma/generated/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
-import { appConfig } from '../../config/app.config.js';
+import { generateHashedPassword } from '../../shared/util/utils.js';
 
 @Injectable()
 export class ResetPasswordTokenRepository {
@@ -44,7 +44,7 @@ export class ResetPasswordTokenRepository {
   }
 
   async updatePassword(userId: number, password: string, token: string): Promise<void> {
-    const hashedPassword = await bcrypt.hash(password, appConfig.SALT_ROUNDS);
+    const hashedPassword = await generateHashedPassword(password);
 
     // Transaction : update user + delete reset password token
     await this.prisma.$transaction(async (tx) => {
